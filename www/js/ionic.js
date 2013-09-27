@@ -10,7 +10,8 @@ window.ionic = {
     detect: function() {
       var platforms = [];
 
-      var platform = this._checkPlatforms(platforms);
+      this._checkPlatforms(platforms);
+      console.log('Read platforms:', platforms);
 
       for(var i = 0; i < platforms.length; i++) {
         document.body.classList.add('platform-' + platforms[i]);
@@ -34,6 +35,7 @@ window.ionic = {
       //&& /ios|iphone|ipod|ipad|android/i.test(navigator.userAgent);
     },
     isIOS7: function() {
+      console.log('Is ios?', window.device);
       if(!window.device) {
         return false;
       }

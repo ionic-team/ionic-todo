@@ -15,12 +15,10 @@
 
     <script src='https://cdn.firebase.com/v0/firebase.js'></script>
     <script src="https://cdn.firebase.com/v0/firebase-simple-login.js"></script>
-    <script src='https://cdn.firebase.com/libs/angularfire/0.3.0/angularfire.min.js'></script>
+    <script src="https://cdn.firebase.com/libs/angularfire/0.3.0/angularfire.min.js"></script>
 
     <script src="js/ionic.js"></script>
     <script src="js/index.js"></script>
-    <style>
-    </style>
   </head>
   <body ng-controller="TodoCtrl">
     <div ng-switch on="display.screen" class="reveal-animation">
@@ -134,8 +132,10 @@
       </ul>
     </div>
     -->
+    <script type="text/javascript" src="cordova.js"></script>
     <script>
       document.addEventListener('deviceready', function () {
+        console.log('Detecting platform');
         ionic.Platform.detect();
       });
     </script>
