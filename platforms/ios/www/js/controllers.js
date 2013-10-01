@@ -1,6 +1,4 @@
-angular.module('ionic.todo', ['firebase', 'ngRoute', 'ngAnimate'])
-
-.constant('FIREBASE_URL', 'https://ionic-todo-demo.firebaseio.com/')
+angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase', 'ngRoute', 'ngAnimate'])
 
 .controller('TodoCtrl', function($scope, $rootScope, AuthService) {
   $scope.display = {
@@ -19,40 +17,6 @@ angular.module('ionic.todo', ['firebase', 'ngRoute', 'ngAnimate'])
 
   $scope.setScreen = function(screen) {
     $scope.display.screen = screen;
-  };
-})
-
-.factory('AuthService', function(angularFireAuth, $rootScope, FIREBASE_URL) {
-  var ref = new Firebase(FIREBASE_URL);
-  angularFireAuth.initialize(ref, {
-    scope: $rootScope,
-    callback: function(user, err) {
-      console.log('AUTH CHANGED', err, user);
-    },
-    name: 'user'
-  });
-
-  return {
-    login: function(email, password) {
-      if(!email || !password) {
-        return;
-      }
-      console.log('Logging in', email, password);
-      return angularFireAuth.login('password', {
-        email: email,
-        password: password
-      });
-    },
-    signup: function(email, password) {
-      if(!email || !password) {
-        return;
-      }
-      console.log('Signing up', name, email, password);
-
-      angularFireAuth.createUser(email, password, function(err, user) {
-        console.log('SIGED UP', err, user);
-      });
-    }
   };
 })
 
@@ -80,6 +44,7 @@ angular.module('ionic.todo', ['firebase', 'ngRoute', 'ngAnimate'])
 })
 
 .controller('SignupCtrl', function($scope, AuthService) {
+  $scope.signupForm = {};
 
   $scope.trySignup = function(data) {
     AuthService.signup(data.email, data.password);
