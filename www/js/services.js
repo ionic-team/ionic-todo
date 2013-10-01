@@ -1,6 +1,12 @@
-angular.module('ionic.todo.services', ['ionic.todo', 'firebase', 'ngRoute', 'ngAnimate'])
+angular.module('ionic.todo.services', ['ionic.todo', 'firebase'])
 
+
+/**
+ * The AuthService handles user authentication with Firebase.
+ */
 .factory('AuthService', function(angularFireAuth, $rootScope, FIREBASE_URL) {
+
+  // Initialize the angularFireAuth service.
   var ref = new Firebase(FIREBASE_URL);
   angularFireAuth.initialize(ref, {
     scope: $rootScope,
@@ -11,16 +17,21 @@ angular.module('ionic.todo.services', ['ionic.todo', 'firebase', 'ngRoute', 'ngA
   });
 
   return {
+
+    // Try to log in with the given email and pass
     login: function(email, password) {
       if(!email || !password) {
         return;
       }
       console.log('Logging in', email, password);
+
       return angularFireAuth.login('password', {
         email: email,
         password: password
       });
     },
+
+    // Try to sign up with the given email and pass
     signup: function(email, password) {
       if(!email || !password) {
         return;

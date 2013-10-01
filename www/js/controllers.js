@@ -1,4 +1,4 @@
-angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase', 'ngRoute', 'ngAnimate'])
+angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase'])
 
 .controller('TodoCtrl', function($scope, $rootScope, AuthService) {
   $scope.display = {

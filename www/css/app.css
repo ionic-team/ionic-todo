@@ -40,10 +40,8 @@ input {
 .reveal-animation > * {
   -webkit-perspective: 1000;
   -webkit-backface-visibility: hidden;
-  display: none;
 }
 .reveal-animation > .ng-enter {
-  display: block;
   -webkit-transform:translateX(100%);
   -webkit-transition: 4s ease-in-out all;
 }
