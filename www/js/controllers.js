@@ -1,5 +1,6 @@
 angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase'])
 
+// The main controller for the application
 .controller('TodoCtrl', function($scope, $rootScope, AuthService) {
   $scope.display = {
     screen: 'splash'
@@ -20,6 +21,7 @@ angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase'])
   };
 })
 
+// The login form controller
 .controller('LoginCtrl', function($scope,  AuthService) {
   console.log('Created login Ctrl');
 
@@ -43,6 +45,7 @@ angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase'])
   };
 })
 
+// The signup form controller
 .controller('SignupCtrl', function($scope, AuthService) {
   $scope.signupForm = {};
 
@@ -51,6 +54,7 @@ angular.module('ionic.todo.controllers', ['ionic.todo', 'firebase'])
   };
 })
 
+// The tasks controller (main app controller)
 .controller('TasksCtrl', function($scope, angularFire, FIREBASE_URL) {
   var taskRef = new Firebase(FIREBASE_URL + '/todos');
   $scope.todos = [];

@@ -1,9 +1,7 @@
 angular.module('ionic.todo.services', ['ionic.todo', 'firebase'])
 
 
-/**
- * The AuthService handles user authentication with Firebase.
- */
+// The AuthService handles user authentication with Firebase.
 .factory('AuthService', function(angularFireAuth, $rootScope, FIREBASE_URL) {
 
   // Initialize the angularFireAuth service.
