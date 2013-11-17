@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.ionicframework.todo" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>IonicTodo</name>
+<widget id="com.ionic.hello" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>HelloWorld</name>
     <description>
         A sample Apache Cordova application that responds to the deviceready event.
     </description>
@@ -10,6 +10,5 @@
     <content src="index.html" />
     <access origin="*" />
     <preference name="fullscreen" value="true" />
-    <preference name="webviewbounce" value="false" />
-    <preference name="UIWebViewBounce" value="false" />
+    <preference name="webviewbounce" value="true" />
 </widget>

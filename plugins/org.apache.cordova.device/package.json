@@ -1,5 +1,5 @@
 {
-    "version": "0.2.3",
+    "version": "0.2.4",
     "name": "org.apache.cordova.device",
     "cordova_name": "Device",
     "description": "Cordova Device Plugin",
