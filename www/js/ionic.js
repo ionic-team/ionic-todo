@@ -1,36 +1,35 @@
-/*
-Copyright 2013 Drifty Co.
-http://drifty.com/
-
-Ionic - an amazing HTML5 mobile app framework.
-http://ionicframework.com/
-
-By @maxlynch, @helloimben, @adamdbradley <3
-
-Licensed under the MIT license. Please see LICENSE for more information.
-
-Make awesome shit.
-*/
-;
+/*!
+ * Copyright 2014 Drifty Co.
+ * http://drifty.com/
+ *
+ * Ionic, v0.9.20-alpha
+ * A powerful HTML5 mobile app framework.
+ * http://ionicframework.com/
+ *
+ * By @maxlynch, @helloimben, @adamdbradley <3
+ *
+ * Licensed under the MIT license. Please see LICENSE for more information.
+ *
+ */;
 
 // Create namespaces 
 window.ionic = {
   controllers: {},
-  views: {}
-};
-;
+  views: {},
+  version: '0.9.20-alpha'
+};;
 (function(ionic) {
 
   var bezierCoord = function (x,y) {
-    if(!x) var x=0;
-    if(!y) var y=0;
+    if(!x) x=0;
+    if(!y) y=0;
     return {x: x, y: y};
-  }
+  };
 
-  function B1(t) { return t*t*t }
-  function B2(t) { return 3*t*t*(1-t) }
-  function B3(t) { return 3*t*(1-t)*(1-t) }
-  function B4(t) { return (1-t)*(1-t)*(1-t) }
+  function B1(t) { return t*t*t; }
+  function B2(t) { return 3*t*t*(1-t); }
+  function B3(t) { return 3*t*(1-t)*(1-t); }
+  function B4(t) { return (1-t)*(1-t)*(1-t); }
 
   ionic.Animator = {
     // Quadratic bezier solver
@@ -85,7 +84,7 @@ window.ionic = {
           if (Math.abs(x2 - x) < epsilon) return curveY(t2);
           if (x > x2) t0 = t2;
           else t1 = t2;
-          t2 = (t1 - t0) * .5 + t0;
+          t2 = (t1 - t0) * 0.5 + t0;
         }
 
         // Failure
@@ -155,10 +154,23 @@ window.ionic = {
           };
         }
       }
-      return null
+      return null;
     },
 
-    getChildIndex: function(element) {
+    getChildIndex: function(element, type) {
+      if(type) {
+        var ch = element.parentNode.children;
+        var c;
+        for(var i = 0, k = 0, j = ch.length; i < j; i++) {
+          c = ch[i];
+          if(c.nodeName && c.nodeName.toLowerCase() == type) {
+            if(c == element) {
+              return k;
+            }
+            k++;
+          }
+        }
+      }
       return Array.prototype.slice.call(element.parentNode.children).indexOf(element);
     },
     swapNodes: function(src, dest) {
@@ -187,6 +199,12 @@ window.ionic = {
         e = e.parentNode;
       }
       return null;
+    },
+
+    rectContains: function(x, y, x1, y1, x2, y2) {
+      if(x < x1 || x > x2) return false;
+      if(y < y1 || y > y2) return false;
+      return true;
     }
   };
 })(window.ionic);
@@ -204,6 +222,30 @@ window.ionic = {
  */
 
 (function(ionic) {
+
+  // Custom event polyfill
+  if(!window.CustomEvent) {
+    (function() {
+      var CustomEvent;
+
+      CustomEvent = function(event, params) {
+        var evt;
+        params = params || {
+          bubbles: false,
+          cancelable: false,
+          detail: undefined
+        };
+        evt = document.createEvent("CustomEvent");
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
+      };
+
+      CustomEvent.prototype = window.Event.prototype;
+
+      window.CustomEvent = CustomEvent;
+    })();
+  }
+
   ionic.EventController = {
     VIRTUALIZED_EVENTS: ['tap', 'swipe', 'swiperight', 'swipeleft', 'drag', 'hold', 'release'],
 
@@ -249,39 +291,6 @@ window.ionic = {
       gesture.off(type, callback);
     },
 
-    // // With a click event, we need to check the target
-    // // and if it's an internal target that doesn't want
-    // // a click, cancel it
-    // handleClick: function(e) {
-    //   var target = e.target;
-
-    //   if(ionic.Gestures.HAS_TOUCHEVENTS) {
-    //     // We don't allow any clicks on mobile
-    //     e.preventDefault();
-    //     return false;
-    //   }
-
-    //   if (
-    //     !  target
-    //     || e.which > 1
-    //     || e.metaKey
-    //     || e.ctrlKey
-    //     //|| isScrolling
-    //     // || location.protocol !== target.protocol
-    //     // || location.host     !== target.host
-    //     // // Not sure abotu this one
-    //     // //|| !target.hash && /#/.test(target.href)
-    //     // || target.hash && target.href.replace(target.hash, '') === location.href.replace(location.hash, '')
-    //     //|| target.getAttribute('data-ignore') == 'push'
-    //   ) {
-    //     // Allow it
-    //     return;
-    //   }
-    //   // We need to cancel this one
-    //   e.preventDefault();
-
-    // },
-    
     handlePopState: function(event) {
     },
   };
@@ -290,13 +299,9 @@ window.ionic = {
   // Map some convenient top-level functions for event handling
   ionic.on = function() { ionic.EventController.on.apply(ionic.EventController, arguments); };
   ionic.off = function() { ionic.EventController.off.apply(ionic.EventController, arguments); };
-  ionic.trigger = function() { ionic.EventController.trigger.apply(ionic.EventController.trigger, arguments); };
+  ionic.trigger = ionic.EventController.trigger;//function() { ionic.EventController.trigger.apply(ionic.EventController.trigger, arguments); };
   ionic.onGesture = function() { return ionic.EventController.onGesture.apply(ionic.EventController.onGesture, arguments); };
   ionic.offGesture = function() { return ionic.EventController.offGesture.apply(ionic.EventController.offGesture, arguments); };
-
-  // DISABLING FOR NOW. THE TAP CODE AT THE EXT LEVEL SHOULD BE DOING THIS
-  // Set up various listeners
-  //window.addEventListener('click', ionic.EventController.handleClick);
 
 })(window.ionic);
 ;
@@ -743,7 +748,7 @@ window.ionic = {
                       }
 
                       if(this.srcEvent.preventDefault) {
-                        this.srcEvent.preventDefault();
+                        //this.srcEvent.preventDefault();
                       }
                     },
 
@@ -1735,12 +1740,23 @@ window.ionic = {
     detect: function() {
       var platforms = [];
 
-      this._checkPlatforms(platforms);
+      var didDetect = this._checkPlatforms(platforms);
 
-      for(var i = 0; i < platforms.length; i++) {
-        document.body.classList.add('platform-' + platforms[i]);
-      }
+      var classify = function() {
+        if(!document.body) { return; }
 
+        for(var i = 0; i < platforms.length; i++) {
+          document.body.classList.add('platform-' + platforms[i]);
+        }
+      };
+
+      document.addEventListener( "DOMContentLoaded", function(){
+        classify();
+      });
+
+      classify();
+
+      return didDetect;
     },
     _checkPlatforms: function(platforms) {
       if(this.isCordova()) {
@@ -1749,20 +1765,49 @@ window.ionic = {
       if(this.isIOS7()) {
         platforms.push('ios7');
       }
+      if(this.isIPad()) {
+        platforms.push('ipad');
+      }
+      if(this.isAndroid()) {
+        platforms.push('android');
+      }
+
+      // Return whether we detected anything
+      if(platforms.length === 0) {
+        return false;
+      }
+      return true;
     },
 
     // Check if we are running in Cordova, which will have
     // window.device available.
     isCordova: function() {
       return (window.cordova || window.PhoneGap || window.phonegap);
-      //&& /^file:\/{3}[^\/]/i.test(window.location.href) 
-      //&& /ios|iphone|ipod|ipad|android/i.test(navigator.userAgent);
+    },
+    isIPad: function() {
+      return navigator.userAgent.toLowerCase().indexOf('ipad') >= 0;
     },
     isIOS7: function() {
       if(!window.device) {
         return false;
       }
-      return parseFloat(window.device.version) >= 7.0;
+      return window.device.platform == 'iOS' && parseFloat(window.device.version) >= 7.0;
+    },
+    isAndroid: function() {
+      if(!window.device) {
+        return navigator.userAgent.toLowerCase().indexOf('android') >= 0;
+      }
+      return window.device.platform === "Android";
+    },
+
+    // Check if the platform is the one detected by cordova
+    is: function(type) {
+      if(window.device) {
+        return window.device.platform === type || window.device.platform.toLowerCase() === type;
+      }
+
+      // A quick hack for 
+      return navigator.userAgent.toLowerCase().indexOf(type.toLowerCase()) >= 0;
     }
   };
 
@@ -1799,13 +1844,22 @@ window.ionic = {
     }
   })();
 
-
   // polyfill use to simulate native "tap"
   function inputTapPolyfill(ele, e) {
-    if(ele.type === "radio" || ele.type === "checkbox") {
-      //ele.checked = !ele.checked;
+    if(ele.type === "radio") {
+      ele.checked = !ele.checked;
+      ionic.trigger('click', {
+        target: ele
+      });
+    } else if(ele.type === "checkbox") {
+      ele.checked = !ele.checked;
+      ionic.trigger('change', {
+        target: ele
+      });
     } else if(ele.type === "submit" || ele.type === "button") {
-      ele.click();
+      ionic.trigger('click', {
+        target: ele
+      });
     } else {
       ele.focus();
     }
@@ -1838,15 +1892,14 @@ window.ionic = {
         if(ele.control) {
           return inputTapPolyfill(ele.control, e);
         }
-      }
-      /* Let ng-click handle this
-      else if( ele.tagName === "A" || ele.tagName === "BUTTON" ) {
-        ele.click();
+      } else if( ele.tagName === "A" || ele.tagName === "BUTTON" ) {
+        ionic.trigger('click', {
+          target: ele
+        });
         e.stopPropagation();
         e.preventDefault();
         return false;
       }
-      */
       ele = ele.parentElement;
     }
 
@@ -1875,6 +1928,17 @@ window.ionic = {
    * Some of these are adopted from underscore.js and backbone.js, both also MIT licensed.
    */
   ionic.Utils = {
+
+    arrayMove: function (arr, old_index, new_index) {
+      if (new_index >= arr.length) {
+        var k = new_index - arr.length;
+        while ((k--) + 1) {
+          arr.push(undefined);
+        }
+      }
+      arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+      return arr;
+    },
 
     /**
      * Return a function that will be called with the given context
@@ -2023,800 +2087,2014 @@ window.ionic = {
 
 })(window.ionic);
 ;
-/**
- * ionic.views.Scroll. Portions lovingly adapted from the great iScroll 5, which is
- * also MIT licensed.
- * iScroll v5.0.5 ~ (c) 2008-2013 Matteo Spinelli ~ http://cubiq.org/license
+/*
+ * Scroller
+ * http://github.com/zynga/scroller
  *
- * Think of ionic.views.Scroll like a Javascript version of UIScrollView or any 
- * scroll container in any UI library. You could just use -webkit-overflow-scrolling: touch,
- * but you lose control over scroll behavior that native developers have with things
- * like UIScrollView, and you don't get events after the finger stops touching the
- * device (after a flick, for example).
+ * Copyright 2011, Zynga Inc.
+ * Licensed under the MIT License.
+ * https://raw.github.com/zynga/scroller/master/MIT-LICENSE.txt
  *
- * Some people are afraid of using Javascript powered scrolling, but
- * with today's devices, Javascript is probably the best solution for
- * scrolling in hybrid apps. Someone's code is running somewhere, even on native, right?
+ * Based on the work of: Unify Project (unify-project.org)
+ * http://unify-project.org
+ * Copyright 2011, Deutsche Telekom AG
+ * License: MIT + Apache (V2)
  */
+
+/**
+ * Generic animation class with support for dropped frames both optional easing and duration.
+ *
+ * Optional duration is useful when the lifetime is defined by another condition than time
+ * e.g. speed of an animating object, etc.
+ *
+ * Dropped frame logic allows to keep using the same updater logic independent from the actual
+ * rendering. This eases a lot of cases where it might be pretty complex to break down a state
+ * based on the pure time difference.
+ */
+(function(global) {
+	var time = Date.now || function() {
+		return +new Date();
+	};
+	var desiredFrames = 60;
+	var millisecondsPerSecond = 1000;
+	var running = {};
+	var counter = 1;
+
+	// Create namespaces
+	if (!global.core) {
+		global.core = { effect : {} };
+
+	} else if (!core.effect) {
+		core.effect = {};
+	}
+
+	core.effect.Animate = {
+
+		/**
+		 * A requestAnimationFrame wrapper / polyfill.
+		 *
+		 * @param callback {Function} The callback to be invoked before the next repaint.
+		 * @param root {HTMLElement} The root element for the repaint
+		 */
+		requestAnimationFrame: (function() {
+
+			// Check for request animation Frame support
+			var requestFrame = global.requestAnimationFrame || global.webkitRequestAnimationFrame || global.mozRequestAnimationFrame || global.oRequestAnimationFrame;
+			var isNative = !!requestFrame;
+
+			if (requestFrame && !/requestAnimationFrame\(\)\s*\{\s*\[native code\]\s*\}/i.test(requestFrame.toString())) {
+				isNative = false;
+			}
+
+			if (isNative) {
+				return function(callback, root) {
+					requestFrame(callback, root)
+				};
+			}
+
+			var TARGET_FPS = 60;
+			var requests = {};
+			var requestCount = 0;
+			var rafHandle = 1;
+			var intervalHandle = null;
+			var lastActive = +new Date();
+
+			return function(callback, root) {
+				var callbackHandle = rafHandle++;
+
+				// Store callback
+				requests[callbackHandle] = callback;
+				requestCount++;
+
+				// Create timeout at first request
+				if (intervalHandle === null) {
+
+					intervalHandle = setInterval(function() {
+
+						var time = +new Date();
+						var currentRequests = requests;
+
+						// Reset data structure before executing callbacks
+						requests = {};
+						requestCount = 0;
+
+						for(var key in currentRequests) {
+							if (currentRequests.hasOwnProperty(key)) {
+								currentRequests[key](time);
+								lastActive = time;
+							}
+						}
+
+						// Disable the timeout when nothing happens for a certain
+						// period of time
+						if (time - lastActive > 2500) {
+							clearInterval(intervalHandle);
+							intervalHandle = null;
+						}
+
+					}, 1000 / TARGET_FPS);
+				}
+
+				return callbackHandle;
+			};
+
+		})(),
+
+
+		/**
+		 * Stops the given animation.
+		 *
+		 * @param id {Integer} Unique animation ID
+		 * @return {Boolean} Whether the animation was stopped (aka, was running before)
+		 */
+		stop: function(id) {
+			var cleared = running[id] != null;
+			if (cleared) {
+				running[id] = null;
+			}
+
+			return cleared;
+		},
+
+
+		/**
+		 * Whether the given animation is still running.
+		 *
+		 * @param id {Integer} Unique animation ID
+		 * @return {Boolean} Whether the animation is still running
+		 */
+		isRunning: function(id) {
+			return running[id] != null;
+		},
+
+
+		/**
+		 * Start the animation.
+		 *
+		 * @param stepCallback {Function} Pointer to function which is executed on every step.
+		 *   Signature of the method should be `function(percent, now, virtual) { return continueWithAnimation; }`
+		 * @param verifyCallback {Function} Executed before every animation step.
+		 *   Signature of the method should be `function() { return continueWithAnimation; }`
+		 * @param completedCallback {Function}
+		 *   Signature of the method should be `function(droppedFrames, finishedAnimation) {}`
+		 * @param duration {Integer} Milliseconds to run the animation
+		 * @param easingMethod {Function} Pointer to easing function
+		 *   Signature of the method should be `function(percent) { return modifiedValue; }`
+		 * @param root {Element ? document.body} Render root, when available. Used for internal
+		 *   usage of requestAnimationFrame.
+		 * @return {Integer} Identifier of animation. Can be used to stop it any time.
+		 */
+		start: function(stepCallback, verifyCallback, completedCallback, duration, easingMethod, root) {
+
+			var start = time();
+			var lastFrame = start;
+			var percent = 0;
+			var dropCounter = 0;
+			var id = counter++;
+
+			if (!root) {
+				root = document.body;
+			}
+
+			// Compacting running db automatically every few new animations
+			if (id % 20 === 0) {
+				var newRunning = {};
+				for (var usedId in running) {
+					newRunning[usedId] = true;
+				}
+				running = newRunning;
+			}
+
+			// This is the internal step method which is called every few milliseconds
+			var step = function(virtual) {
+
+				// Normalize virtual value
+				var render = virtual !== true;
+
+				// Get current time
+				var now = time();
+
+				// Verification is executed before next animation step
+				if (!running[id] || (verifyCallback && !verifyCallback(id))) {
+
+					running[id] = null;
+					completedCallback && completedCallback(desiredFrames - (dropCounter / ((now - start) / millisecondsPerSecond)), id, false);
+					return;
+
+				}
+
+				// For the current rendering to apply let's update omitted steps in memory.
+				// This is important to bring internal state variables up-to-date with progress in time.
+				if (render) {
+
+					var droppedFrames = Math.round((now - lastFrame) / (millisecondsPerSecond / desiredFrames)) - 1;
+					for (var j = 0; j < Math.min(droppedFrames, 4); j++) {
+						step(true);
+						dropCounter++;
+					}
+
+				}
+
+				// Compute percent value
+				if (duration) {
+					percent = (now - start) / duration;
+					if (percent > 1) {
+						percent = 1;
+					}
+				}
+
+				// Execute step callback, then...
+				var value = easingMethod ? easingMethod(percent) : percent;
+				if ((stepCallback(value, now, render) === false || percent === 1) && render) {
+					running[id] = null;
+					completedCallback && completedCallback(desiredFrames - (dropCounter / ((now - start) / millisecondsPerSecond)), id, percent === 1 || duration == null);
+				} else if (render) {
+					lastFrame = now;
+					core.effect.Animate.requestAnimationFrame(step, root);
+				}
+			};
+
+			// Mark as running
+			running[id] = true;
+
+			// Init first step
+			core.effect.Animate.requestAnimationFrame(step, root);
+
+			// Return unique animation ID
+			return id;
+		}
+	};
+})(this);
+
+/*
+ * Scroller
+ * http://github.com/zynga/scroller
+ *
+ * Copyright 2011, Zynga Inc.
+ * Licensed under the MIT License.
+ * https://raw.github.com/zynga/scroller/master/MIT-LICENSE.txt
+ *
+ * Based on the work of: Unify Project (unify-project.org)
+ * http://unify-project.org
+ * Copyright 2011, Deutsche Telekom AG
+ * License: MIT + Apache (V2)
+ */
+
+var Scroller;
+
 (function(ionic) {
-'use strict';
+	var NOOP = function(){};
 
-  // Some easing functions for animations
-  var EASING_FUNCTIONS = {
-    quadratic: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-		circular: 'cubic-bezier(0.1, 0.57, 0.1, 1)',
-    circular2: 'cubic-bezier(0.075, 0.82, 0.165, 1)',
+	// Easing Equations (c) 2003 Robert Penner, all rights reserved.
+	// Open source under the BSD License.
 
-    bounce: 'cubic-bezier(.02,.69,.67,1)',
+	/**
+	 * @param pos {Number} position between 0 (start of effect) and 1 (end of effect)
+	**/
+	var easeOutCubic = function(pos) {
+		return (Math.pow((pos - 1), 3) + 1);
+	};
 
-    // It closes like a high-end toilet seat. Fast, then nice and slow.
-    // Thanks to our @xtheglobe for that.
-    toiletSeat: 'cubic-bezier(0.05, 0.60, 0.05, 0.60)'
-  };
+	/**
+	 * @param pos {Number} position between 0 (start of effect) and 1 (end of effect)
+	**/
+	var easeInOutCubic = function(pos) {
+		if ((pos /= 0.5) < 1) {
+			return 0.5 * Math.pow(pos, 3);
+		}
 
-  ionic.views.Scroll = ionic.views.View.inherit({
+		return 0.5 * (Math.pow((pos - 2), 3) + 2);
+	};
 
-    initialize: function(opts) {
-      var _this = this;
 
-      // Extend the options with our defaults
-      opts = ionic.Utils.extend({
-        decelerationRate: ionic.views.Scroll.prototype.DECEL_RATE_NORMAL,
-        dragThreshold: 10,
-        
-        // Resistance when scrolling too far up or down
-        rubberBandResistance: 2,
+	/**
+	 * A pure logic 'component' for 'virtual' scrolling/zooming.
+	 */
+ionic.views.Scroll = ionic.views.View.inherit({
+  initialize: function(options) {
+    var self = this;
 
-        // Scroll event names. These are custom so can be configured
-        scrollEventName: 'momentumScrolled',
-        scrollEndEventName: 'momentumScrollEnd',
+    this.__container = options.el;
+    this.__content = options.el.firstElementChild;
 
-        hasPullToRefresh: true,
 
-        // Whether to disable overflow rubber banding when content is small
-        // enough to fit in the viewport (i.e. doesn't need scrolling)
-        disableNonOverflowRubberBand: true,
+		this.options = {
 
-        // Called as the refresher is opened, an amount is passed
-        onRefreshOpening: function() {},
-        // Called when let go and is refreshing
-        onRefresh: function() {},
-        refreshEasing: EASING_FUNCTIONS.bounce,
-        // ms transition time
-        refreshEasingTime: 400,
-        refreshOpeningInterval: 100,
+      /** Disable scrolling on x-axis by default */
+      scrollingX: false,
+      scrollbarX: true,
 
-        // How frequently to fire scroll events in the case of 
-        // a flick or momentum scroll where the finger is no longer
-        // touching the screen. If your event handler is a performance
-        // hog, change this millisecond value to cut down on the frequency
-        // of events triggered in those instances.
-        inertialEventInterval: 50,
+      /** Enable scrolling on y-axis */
+      scrollingY: true,
+      scrollbarY: true,
 
-        // How quickly to scroll with a mouse wheel. 20 is a good default
-        mouseWheelSpeed: 20,
+      /** The minimum size the scrollbars scale to while scrolling */
+      minScrollbarSizeX: 5,
+      minScrollbarSizeY: 5,
 
-        // Invert the mouse wheel? This makes sense on new Macbooks, but
-        // nowhere else.
-        invertWheel: false,
+      /** Scrollbar fading after scrolling */
+      scrollbarsFade: true,
+      scrollbarFadeDelay: 300,
+      /** The initial fade delay when the pane is resized or initialized */
+      scrollbarResizeFadeDelay: 1000,
 
-        // Enable vertical scrolling
-        isVerticalEnabled: true,
+      /** Enable animations for deceleration, snap back, zooming and scrolling */
+      animating: true,
 
-        // Enable horizontal scrolling
-        isHorizontalEnabled: false,
+      /** duration for animations triggered by scrollTo/zoomTo */
+      animationDuration: 250,
 
-        // The easing function to use for bouncing up or down on the bounds
-        // of the scrolling area
-        bounceEasing: EASING_FUNCTIONS.bounce,
+      /** Enable bouncing (content can be slowly moved outside and jumps back after releasing) */
+      bouncing: true,
 
-        //how long to take when bouncing back in a rubber band
-        bounceTime: 600 
-      }, opts);
+      /** Enable locking to the main axis if user moves only slightly on one of them at start */
+      locking: true,
 
-      ionic.extend(this, opts);
+      /** Enable pagination mode (switching between full page content panes) */
+      paging: false,
 
-      this.el = opts.el;
+      /** Enable snapping of content to a configured pixel grid */
+      snapping: false,
 
-      this.y = 0;
-      this.x = 0;
+      /** Enable zooming of content via API, fingers and mouse wheel */
+      zooming: false,
 
-      // Create a throttled pull to refresh "opening" function
-      // which will get called as the refresh "opens" from drag
-      var refreshOpening = _this.onRefreshOpening;
-      _this.onRefreshOpening = ionic.throttle(function(ratio) {
-        refreshOpening && refreshOpening(ratio);
-      }, 100);
+      /** Minimum zoom level */
+      minZoom: 0.5,
 
-      // Listen for drag and release events
-      ionic.onGesture('drag', function(e) {
-        _this._handleDrag(e);
-      }, this.el);
-      ionic.onGesture('release', function(e) {
-        _this._handleEndDrag(e);
-      }, this.el);
-      ionic.on('mousewheel', function(e) {
-        _this._wheel(e);
-      }, this.el);
-      ionic.on('DOMMouseScroll', function(e) {
-        _this._wheel(e);
-      }, this.el);
-      ionic.on(this.scrollEndEventName, function(e) {
-        _this._onScrollEnd(e);
-      }, this.el);
-      ionic.on('webkitTransitionEnd', function(e) {
-        _this._onTransitionEnd(e);
+      /** Maximum zoom level */
+      maxZoom: 3,
+
+      /** Multiply or decrease scrolling speed **/
+      speedMultiplier: 1,
+
+      /** Callback that is fired on the later of touch end or deceleration end,
+        provided that another scrolling action has not begun. Used to know
+        when to fade out a scrollbar. */
+      scrollingComplete: NOOP,
+
+      /** This configures the amount of change applied to deceleration when reaching boundaries  **/
+      penetrationDeceleration : 0.03,
+
+      /** This configures the amount of change applied to acceleration when reaching boundaries  **/
+      penetrationAcceleration : 0.08,
+
+      // The ms interval for triggering scroll events
+      scrollEventInterval: 50
+		};
+
+		for (var key in options) {
+			this.options[key] = options[key];
+		}
+
+    this.hintResize = ionic.debounce(function() {
+      self.resize();
+    }, 1000, true);
+
+    this.triggerScrollEvent = ionic.throttle(function() {
+      ionic.trigger('scroll', {
+        scrollTop: self.__scrollTop,
+        scrollLeft: self.__scrollLeft,
+        target: self.__container
       });
-    },
+    }, this.options.scrollEventInterval);
 
-    // Called by user to tell the scroll view to stop pull to refresh
-    doneRefreshing: function() {
-      var _this = this;
+    this.triggerScrollEndEvent = function() {
+      ionic.trigger('scrollend', {
+        scrollTop: self.__scrollTop,
+        scrollLeft: self.__scrollLeft,
+        target: self.__container
+      });
+    };
 
-      this._scrollTo(0, 0, this.refreshEasingTime, this.refreshEasing);
+    // Get the render update function, initialize event handlers,
+    // and calculate the size of the scroll container
+		this.__callback = this.getRenderFn();
+    this.__initEventHandlers();
+    this.__createScrollbars();
+    this.resize();
 
-      this._isHoldingRefresh = false;
-
-      // Hide the refresher
-      setTimeout(function() {
-        _this._refresher.style.display = 'none';
-        _this._isRefresherHidden = true;
-      }, this.refreshEasingTime);
-    },
-
-    /**
-     * Scroll to the given X and Y point, taking 
-     * the given amount of time, with the given
-     * easing function defined as a CSS3 timing function.
-     *
-     * Note: the x and y values will be converted to negative offsets due to
-     * the way scrolling works internally.
-     *
-     * @param {float} the x position to scroll to (CURRENTLY NOT SUPPORTED!)
-     * @param {float} the y position to scroll to
-     * @param {float} the time to take scrolling to the new position
-     * @param {easing} the animation function to use for easing
-     */
-    scrollTo: function(x, y, time, easing) {
-      this._scrollTo(-x, -y, time, easing);
-    },
-
-    _scrollTo: function(x, y, time, easing) {
-      var _this = this;
-
-      time = time || 0;
-
-      var start = Date.now();
-
-      easing = easing || 'cubic-bezier(0.1, 0.57, 0.1, 1)';
-      var easingValues = easing.replace('cubic-bezier(', '').replace(')', '').split(',');
-      easingValues = [parseFloat(easingValues[0]), parseFloat(easingValues[1]), parseFloat(easingValues[2]), parseFloat(easingValues[3])];
-
-      var cubicBezierFunction = ionic.Animator.getCubicBezier(easingValues[0], easingValues[1], easingValues[2], easingValues[3], time);
-
-      var ox = this.x, oy = this.y;
+    // Fade them out
+    this.__fadeScrollbars('out', this.options.scrollbarResizeFadeDelay);
+	},
 
 
-      var el = this.el;
 
-      if(x !== null) {
-        this.x = x;
-      } else {
-        x = this.x;
-      }
-      if(y !== null) {
-        this.y = y;
-      } else {
-        y = this.y;
-      }
+  /*
+  ---------------------------------------------------------------------------
+    INTERNAL FIELDS :: STATUS
+  ---------------------------------------------------------------------------
+  */
 
-      if(ox == x && oy == y) {
-        time = 0;
-      }
+  /** {Boolean} Whether only a single finger is used in touch handling */
+  __isSingleTouch: false,
 
-      var dx = ox - x;
-      var dy = oy - y;
+  /** {Boolean} Whether a touch event sequence is in progress */
+  __isTracking: false,
 
-      el.offsetHeight;
-      el.style.webkitTransitionTimingFunction = easing;
-      el.style.webkitTransitionDuration = time;
-      el.style[ionic.CSS.TRANSFORM] = 'translate3d(' + x + 'px,' + y + 'px, 0)';
+  /** {Boolean} Whether a deceleration animation went to completion. */
+  __didDecelerationComplete: false,
 
-      // Stop any other momentum event callbacks
-      clearTimeout(this._momentumStepTimeout);
+  /**
+   * {Boolean} Whether a gesture zoom/rotate event is in progress. Activates when
+   * a gesturestart event happens. This has higher priority than dragging.
+   */
+  __isGesturing: false,
 
-      // Start triggering events as the element scrolls from inertia.
-      // This is important because we need to receive scroll events
-      // even after a "flick" and adjust, etc.
-      if(time > 0) {
-        this._momentumStepTimeout = setTimeout(function eventNotify() {
-          // Calculate where in the animation process we might be
-          var diff = Math.min(time, Math.abs(Date.now() - start));
+  /**
+   * {Boolean} Whether the user has moved by such a distance that we have enabled
+   * dragging mode. Hint: It's only enabled after some pixels of movement to
+   * not interrupt with clicks etc.
+   */
+  __isDragging: false,
 
-          // How far along in time have we moved
-          var timeRatio = diff / time;
+  /**
+   * {Boolean} Not touching and dragging anymore, and smoothly animating the
+   * touch sequence using deceleration.
+   */
+  __isDecelerating: false,
 
-          // Interpolate the transition values, using the same
-          // cubic bezier animation function used in the transition.
-          var bx = ox - dx * cubicBezierFunction(timeRatio);
-          var by = oy - dy * cubicBezierFunction(timeRatio);
+  /**
+   * {Boolean} Smoothly animating the currently configured change
+   */
+  __isAnimating: false,
 
-          _this.didScroll && _this.didScroll({
-            target: _this.el,
-            scrollLeft: -bx,
-            scrollTop: -by
-          });
-          ionic.trigger(_this.scrollEventName, {
-            target: _this.el,
-            scrollLeft: -bx,
-            scrollTop: -by
-          });
 
-          if(_this.isDragging) {
-            _this._momentumStepTimeout = setTimeout(eventNotify, _this.inertialEventInterval);
-          }
-        }, this.inertialEventInterval);
-      } else {
-        this.didScroll && this.didScroll({
-          target: this.el,
-          scrollLeft: -this.x,
-          scrollTop: -this.y
-        });
-        ionic.trigger(this.scrollEventName, {
-          target: this.el,
-          scrollLeft: -this.x,
-          scrollTop: -this.y
-        });
-      }
-    },
 
-    /**
-     * Check if the current scroll bounds needs to be brought back to the min/max
-     * allowable given the total scrollable area.
-     */
-    needsWrapping: function() {
-      var _this = this;
+  /*
+  ---------------------------------------------------------------------------
+    INTERNAL FIELDS :: DIMENSIONS
+  ---------------------------------------------------------------------------
+  */
 
-      var totalWidth = this.el.scrollWidth;
-      var totalHeight = this.el.scrollHeight;
-      var parentWidth = this.el.parentNode.offsetWidth;
-      var parentHeight = this.el.parentNode.offsetHeight;
+  /** {Integer} Available outer left position (from document perspective) */
+  __clientLeft: 0,
 
-      var maxX = Math.min(0, (-totalWidth + parentWidth));
-      var maxY = Math.min(0, (-totalHeight + parentHeight));
+  /** {Integer} Available outer top position (from document perspective) */
+  __clientTop: 0,
 
-      if (this.isHorizontalEnabled && (this.x > 0 || this.x < maxX)) {
-        return true;
-      }
-      
-      if (this.isVerticalEnabled && (this.y > 0 || this.y < maxY)) {
-        return true;
-      }
+  /** {Integer} Available outer width */
+  __clientWidth: 0,
 
-      return false;
-    },
+  /** {Integer} Available outer height */
+  __clientHeight: 0,
 
-    /**
-     * If the scroll position is outside the current bounds,
-     * animate it back.
-     */
-    wrapScrollPosition: function(transitionTime) {
-      var _this = this;
+  /** {Integer} Outer width of content */
+  __contentWidth: 0,
 
-      var totalWidth = _this.el.scrollWidth;
-      var totalHeight = _this.el.scrollHeight;
-      var parentWidth = _this.el.parentNode.offsetWidth;
-      var parentHeight = _this.el.parentNode.offsetHeight;
+  /** {Integer} Outer height of content */
+  __contentHeight: 0,
 
-      var maxX = Math.min(0, (-totalWidth + parentWidth));
-      var maxY = Math.min(0, (-totalHeight + parentHeight));
+  /** {Integer} Snapping width for content */
+  __snapWidth: 100,
 
-        //this._execEvent('scrollEnd');
-      var x = _this.x, y = _this.y;
+  /** {Integer} Snapping height for content */
+  __snapHeight: 100,
 
-      if (!_this.isHorizontalEnabled || _this.x > 0) {
-        x = 0;
-      } else if ( _this.x < maxX) {
-        x = maxX;
-      }
+  /** {Integer} Height to assign to refresh area */
+  __refreshHeight: null,
 
-      if (!_this.isVerticalEnabled || _this.y > 0) {
-        y = 0;
-      } else if (_this.y < maxY) {
-        y = maxY;
-      }
+  /** {Boolean} Whether the refresh process is enabled when the event is released now */
+  __refreshActive: false,
 
-      // No change
-      if (x == _this.x && y == _this.y) {
-        return false;
-      }
-      _this._scrollTo(x, y, transitionTime || 0, _this.bounceEasing);
+  /** {Function} Callback to execute on activation. This is for signalling the user about a refresh is about to happen when he release */
+  __refreshActivate: null,
+
+  /** {Function} Callback to execute on deactivation. This is for signalling the user about the refresh being cancelled */
+  __refreshDeactivate: null,
+
+  /** {Function} Callback to execute to start the actual refresh. Call {@link #refreshFinish} when done */
+  __refreshStart: null,
+
+  /** {Number} Zoom level */
+  __zoomLevel: 1,
+
+  /** {Number} Scroll position on x-axis */
+  __scrollLeft: 0,
+
+  /** {Number} Scroll position on y-axis */
+  __scrollTop: 0,
+
+  /** {Integer} Maximum allowed scroll position on x-axis */
+  __maxScrollLeft: 0,
+
+  /** {Integer} Maximum allowed scroll position on y-axis */
+  __maxScrollTop: 0,
+
+  /* {Number} Scheduled left position (final position when animating) */
+  __scheduledLeft: 0,
+
+  /* {Number} Scheduled top position (final position when animating) */
+  __scheduledTop: 0,
+
+  /* {Number} Scheduled zoom level (final scale when animating) */
+  __scheduledZoom: 0,
+
+
+
+  /*
+  ---------------------------------------------------------------------------
+    INTERNAL FIELDS :: LAST POSITIONS
+  ---------------------------------------------------------------------------
+  */
+
+  /** {Number} Left position of finger at start */
+  __lastTouchLeft: null,
+
+  /** {Number} Top position of finger at start */
+  __lastTouchTop: null,
+
+  /** {Date} Timestamp of last move of finger. Used to limit tracking range for deceleration speed. */
+  __lastTouchMove: null,
+
+  /** {Array} List of positions, uses three indexes for each state: left, top, timestamp */
+  __positions: null,
+
+
+
+  /*
+  ---------------------------------------------------------------------------
+    INTERNAL FIELDS :: DECELERATION SUPPORT
+  ---------------------------------------------------------------------------
+  */
+
+  /** {Integer} Minimum left scroll position during deceleration */
+  __minDecelerationScrollLeft: null,
+
+  /** {Integer} Minimum top scroll position during deceleration */
+  __minDecelerationScrollTop: null,
+
+  /** {Integer} Maximum left scroll position during deceleration */
+  __maxDecelerationScrollLeft: null,
+
+  /** {Integer} Maximum top scroll position during deceleration */
+  __maxDecelerationScrollTop: null,
+
+  /** {Number} Current factor to modify horizontal scroll position with on every step */
+  __decelerationVelocityX: null,
+
+  /** {Number} Current factor to modify vertical scroll position with on every step */
+  __decelerationVelocityY: null,
+
+
+  /** {String} the browser-specific property to use for transforms */
+  __transformProperty: null,
+  __perspectiveProperty: null,
+
+  /** {Object} scrollbar indicators */
+  __indicatorX: null,
+  __indicatorY: null,
+
+  /** Timeout for scrollbar fading */
+  __scrollbarFadeTimeout: null,
+
+  /** {Boolean} whether we've tried to wait for size already */
+  __didWaitForSize: null,
+  __sizerTimeout: null,
+
+  __initEventHandlers: function() {
+    var self = this;
+
+    // Event Handler
+    var container = this.__container;
     
-      return true;
-    },
-
-    _wheel: function(e) {
-      var wheelDeltaX, wheelDeltaY,
-        newX, newY,
-        that = this;
-
-      var totalWidth = this.el.scrollWidth;
-      var totalHeight = this.el.scrollHeight;
-      var parentWidth = this.el.parentNode.offsetWidth;
-      var parentHeight = this.el.parentNode.offsetHeight;
-
-      var maxX = Math.min(0, (-totalWidth + parentWidth));
-      var maxY = Math.min(0, (-totalHeight + parentHeight));
-
-      // Execute the scrollEnd event after 400ms the wheel stopped scrolling
-      clearTimeout(this.wheelTimeout);
-      this.wheelTimeout = setTimeout(function () {
-        that._doneScrolling();
-      }, 400);
-
-      e.preventDefault();
-
-      if('wheelDeltaX' in e) {
-        wheelDeltaX = e.wheelDeltaX / 120;
-        wheelDeltaY = e.wheelDeltaY / 120;
-      } else if ('wheelDelta' in e) {
-        wheelDeltaX = wheelDeltaY = e.wheelDelta / 120;
-      } else if ('detail' in e) {
-        wheelDeltaX = wheelDeltaY = -e.detail / 3;
-      } else {
-        return;
-      }
-
-      wheelDeltaX *= this.mouseWheelSpeed;
-      wheelDeltaY *= this.mouseWheelSpeed;
-
-      if(!this.isVerticalEnabled) {
-        wheelDeltaX = wheelDeltaY;
-        wheelDeltaY = 0;
-      }
-
-      newX = this.x + (this.isHorizontalEnabled ? wheelDeltaX * (this.invertWheel ? -1 : 1) : 0);
-      newY = this.y + (this.isVerticalEnabled ? wheelDeltaY * (this.invertWheel ? -1 : 1) : 0);
-
-      if(newX > 0) {
-        newX = 0;
-      } else if (newX < maxX) {
-        newX = maxX;
-      }
-
-      if(newY > 0) {
-        newY = 0;
-      } else if (newY < maxY) {
-        newY = maxY;
-      }
-
-      this._scrollTo(newX, newY, 0);
-    },
-
-    _getMomentum: function (current, start, time, lowerMargin, wrapperSize) {
-      var distance = current - start,
-        speed = Math.abs(distance) / time,
-        destination,
-        duration,
-        deceleration = 0.0006;
-
-      // Calculate the final desination
-      destination = current + ( speed * speed ) / ( 2 * deceleration ) * ( distance < 0 ? -1 : 1 );
-      duration = speed / deceleration;
-
-      if(speed === 0) {
-        return {
-          destination: current,
-          duration: 0
-        };
-      }
-
-      // Check if the final destination needs to be rubber banded
-      if ( destination < lowerMargin ) {
-        // We have dragged too far down, snap back to the maximum
-        destination = wrapperSize ? lowerMargin - ( wrapperSize / 2.5 * ( speed / 8 ) ) : lowerMargin;
-        distance = Math.abs(destination - current);
-        duration = distance / speed;
-      } else if ( destination > 0 ) {
-
-        // We have dragged too far up, snap back to 0
-        destination = wrapperSize ? wrapperSize / 2.5 * ( speed / 8 ) : 0;
-        distance = Math.abs(current) + destination;
-        duration = distance / speed;
-      }
-
-      return {
-        destination: Math.round(destination),
-        duration: duration
-      };
-    },
-
-    _onTransitionEnd: function(e) {
-      var _this = this;
-
-      if (e.target != this.el) {
-        return;
-      }
-
-      if(this._isHoldingRefresh) {
-        return;
-      }
-
-      var needsWrapping = this.needsWrapping();
-
-      // Triggered to end scroll, once the final animation has ended
-      if(needsWrapping && this._didEndScroll) {
-        this._didEndScroll = false;
-        this._doneScrolling();
-      } else if(!needsWrapping) {
-        this._didEndScroll = false;
-        this._doneScrolling();
-      }
-
-      this.el.style.webkitTransitionDuration = '0';
-
-      window.rAF(function() {
-        if(_this.wrapScrollPosition(_this.bounceTime)) {
-          _this._didEndScroll = true;
-        }
-      });
-    },
-
-    _onScrollEnd: function() {
-      this.isDragging = false;
-      this._drag = null;
-      this.el.classList.remove('scroll-scrolling');
-
-      this.el.style.webkitTransitionDuration = '0';
-
-      clearTimeout(this._momentumStepTimeout)
-    },
-
-
-    _initDrag: function() {
-      this._onScrollEnd();
-      this._isStopped = false;
-    },
-
-
-    /**
-     * Initialize a drag by grabbing the content area to drag, and any other
-     * info we might need for the dragging.
-     */
-    _startDrag: function(e) {
-      var offsetX, content;
-
-      this._initDrag();
-
-      var scrollLeft = parseFloat(this.el.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-      var scrollTop = parseFloat(this.el.style.webkitTransform.replace('translate3d(', '').split(',')[1]) || 0;
-
-      var totalWidth = this.el.scrollWidth;
-      var totalHeight = this.el.scrollHeight;
-      var parentWidth = this.el.parentNode.offsetWidth;
-      var parentHeight = this.el.parentNode.offsetHeight;
-
-      this.x = scrollLeft;
-      this.y = scrollTop;
-
-      // Grab the refresher element if using Pull to Refresh
-      if(this.hasPullToRefresh) {
-        this._refresher = document.querySelector('.scroll-refresher');
-
-        if(this._refresher) {
-          this._refresherHeight = parseFloat(this._refresher.firstElementChild.offsetHeight) || 100;
-          // We always start the refresher hidden
-          if(this.y < 0) {
-            this._isRefresherHidden = true;
-            this._refresher.style.display = 'none';
-          } else {
-            this._isRefresherHidden = false;
-            this._didTriggerRefresh = false;
-            this._refresher.style.display = 'block';
-          }
-
-          this._isHoldingRefresh = false;
-
-          if(this._refresher) {
-            this._refresher.classList.remove('scroll-refreshing');
-          }
-        }
-      }
-
-      this._drag = {
-        direction: 'v',
-        pointX: e.gesture.touches[0].pageX,
-        pointY: e.gesture.touches[0].pageY,
-        startX: scrollLeft,
-        startY: scrollTop,
-        resist: 1,
-        startTime: Date.now()
-      };
-
-      // If the viewport is too small and we aren't using pull to refresh,
-      // don't rubber band the drag
-      if(this.disableNonOverflowRubberBand === true && !this._refresher) {
-        var maxX = Math.min(0, (-totalWidth + parentWidth));
-        var maxY = Math.min(0, (-totalHeight + parentHeight));
-
-        // Check if we even have enough content to scroll, if not, don't start the drag
-        if((this.isHorizontalEnabled && maxX == 0) || (this.isVerticalEnabled && maxY == 0)) {
-          this._drag.noRubberBand = true;
-        }
-      }
-    },
-
-    /**
-     * Process the drag event to move the item to the left or right.
-     *
-     * This function needs to be as fast as possible to make sure scrolling
-     * performance is high.
-     */
-    _handleDrag: function(e) {
-      var _this = this;
-
-      var content;
-
-      // The drag stopped already, don't process this one
-      if(_this._isStopped) {
-        _this._initDrag();
-        return;
-      }
-
-      // We really aren't dragging
-      if(!_this._drag) {
-        _this._startDrag(e);
-        if(!_this._drag) { return; }
-      }
-
-      // Stop any default events during the drag
-      e.preventDefault();
-
-      var px = e.gesture.touches[0].pageX;
-      var py = e.gesture.touches[0].pageY;
-
-      var deltaX = px - _this._drag.pointX;
-      var deltaY = py - _this._drag.pointY;
-
-      _this._drag.pointX = px;
-      _this._drag.pointY = py;
-
-      // Check if we should start dragging. Check if we've dragged past the threshold.
-      if(!_this.isDragging && 
-          ((Math.abs(e.gesture.deltaY) > _this.dragThreshold) ||
-          (Math.abs(e.gesture.deltaX) > _this.dragThreshold))) {
-        _this.isDragging = true;
-      }
-
-      if(_this.isDragging) {
-        var drag = _this._drag;
-
-        // Request an animation frame to batch DOM reads/writes
-        window.rAF(function() {
-          // We are dragging, grab the current content height
-
-          var totalWidth = _this.el.scrollWidth;
-          var totalHeight = _this.el.scrollHeight;
-          var parentWidth = _this.el.parentNode.offsetWidth;
-          var parentHeight = _this.el.parentNode.offsetHeight;
-          var maxX = Math.min(0, (-totalWidth + parentWidth));
-          var maxY = Math.min(0, (-totalHeight + parentHeight));
-
-          // Grab current timestamp to keep our speend, etc.
-          // calculations in a window
-          var timestamp = Date.now();
-
-          // Calculate the new Y point for the container
-          // TODO: Only enable certain axes
-          var newX = _this.x + deltaX;
-          var newY = _this.y + deltaY;
-
-          if(drag.noRubberBand === true) {
-            if(newY > 0) {
-              newY = 0;
-            } else if(newY < maxY) {
-              newY = maxY;
-            }
-            if(newX > 0) {
-              newX = 0;
-            } else if(newX < maxX) {
-              newX = maxX;
-            }
-          } else {
-            // Check if the dragging is beyond the bottom or top
-            if(newY > 0 || (-newY + parentHeight) > totalHeight) {
-              newY = _this.y + deltaY / _this.rubberBandResistance;
-            }
-          }
-
-          if(!_this.isHorizontalEnabled) {
-            newX = 0;
-          }
-          if(!_this.isVerticalEnabled) {
-            newY = 0;
-          }
-
-          if(_this._refresher && newY > 0) {
-            // We are pulling to refresh, so update the refresher
-            if(_this._isRefresherHidden) {
-              // Show it only in a drag and if we haven't showed it yet
-              _this._refresher.style.display = 'block';
-              _this._isRefresherHidden = false;
-            }
-
-            if(newY > _this._refresherHeight && !_this._isHoldingRefresh) {
-              _this._isHoldingRefresh = true;
-              // Trigger refresh holding event here
-            } else {
-              // Trigger refresh open amount
-              var ratio = Math.min(1, newY / _this._refresherHeight);
-              _this.onRefreshOpening(ratio);
-            }
-
-            // Update the new translated Y point of the container
-            _this.el.style[ionic.CSS.TRANSFORM] = 'translate3d(' + newX + 'px,' + newY + 'px, 0)';
-          } else {
-
-            _this._isHoldingRefresh = false;
-
-            // Hide the refresher
-            if(_this.refresher && !_this._isRefresherHidden) {
-              _this._refresher.style.display = 'none';
-              _this._isRefresherHidden = true;
-            }
-            // Update the new translated Y point of the container
-            _this.el.style[ionic.CSS.TRANSFORM] = 'translate3d(' + newX + 'px,' + newY + 'px, 0)';
-          }
-
-          // Store the last points
-          _this.x = newX;
-          _this.y = newY;
-
-          // Check if we need to reset the drag initial states if we've
-          // been dragging for a bit
-          if(timestamp - drag.startTime > 300) {
-            drag.startTime = timestamp;
-            drag.startX = _this.x;
-            drag.startY = _this.y;
-          }
-
-          _this.didScroll && _this.didScroll({
-            target: _this.el,
-            scrollLeft: -newX,
-            scrollTop: -newY
-          });
-
-          // Trigger a scroll event
-          ionic.trigger(_this.scrollEventName, {
-            target: _this.el,
-            scrollLeft: -newX,
-            scrollTop: -newY
-          });
-        });
-      }
-    },
-
-
-
-    _handleEndDrag: function(e) {
-      // We didn't have a drag, so just init and leave
-      if(!this._drag) {
-        this._initDrag();
-        return;
-      }
-
-      // Set a flag in case we don't cleanup completely after the
-      // drag animation so we can cleanup the next time a drag starts
-      this._isStopped = true;
-
-      // Animate to the finishing point
-      this._animateToStop(e);
-
-    },
-
-
-    // Find the stopping point given the current velocity and acceleration rate, and
-    // animate to that position
-    _animateToStop: function(e) {
-      var _this = this;
-      window.rAF(function() {
-
-        var drag = _this._drag;
-
-        // Calculate the viewport height and the height of the content
-        var totalWidth = _this.el.scrollWidth;
-        var totalHeight = _this.el.scrollHeight;
-
-        // The parent bounding box helps us figure max/min scroll amounts
-        var parentWidth = _this.el.parentNode.offsetWidth;
-        var parentHeight = _this.el.parentNode.offsetHeight;
-
-        // Calculate how long we've been dragging for, with a max of 300ms
-        var duration = Date.now() - _this._drag.startTime;
-        var time = 0;
-        var easing = '';
-
-
-        if(_this._refresher && _this.y > 0) {
-          // Pull to refresh
-
-          if(Math.ceil(_this.y) >= _this._refresherHeight) {
-            // REFRESH
-            _this._refresher.classList.add('scroll-refreshing');
-            //_this._refresher.style.height = firstChildHeight + 'px';
-            _this._scrollTo(0, _this._refresherHeight, 100, _this.refreshEasing);
-            if(!_this._didTriggerRefresh) {
-              _this.onRefresh && _this.onRefresh();
-              _this._didTriggerRefresh = true;
-            }
-          } else {
-            _this._refresher.classList.add('scroll-refreshing');
-            //_this._refresher.style.height = 0 + 'px';
-            _this._scrollTo(0, 0, _this.refreshEasingTime, _this.refreshEasing);
-          }
+    if ('ontouchstart' in window) {
+      
+      container.addEventListener("touchstart", function(e) {
+        // Don't react if initial down happens on a form element
+        if (e.target.tagName.match(/input|textarea|select/i)) {
           return;
-        }
-
-        var newX = Math.round(_this.x);
-        var newY = Math.round(_this.y);
-
-        _this._scrollTo(newX, newY);
-
-        // Check if we just snap back to bounds
-        if(_this.wrapScrollPosition(_this.bounceTime)) {
-          return;
-        }
-
-        // If the duration is within reasonable bounds, enable momentum scrolling so we
-        // can "slide" to a finishing point
-        if(duration < 300) {
-          var momentumX = _this._getMomentum(_this.x, drag.startX, duration, parentWidth - totalWidth, parentWidth);
-          var momentumY = _this._getMomentum(_this.y, drag.startY, duration, parentHeight - totalHeight, parentHeight);
-          //var newX = momentumX.destination;
-          newX = momentumX.destination;
-          newY = momentumY.destination;
-
-          // Calculate the longest required time for the momentum animation and
-          // use that.
-          time = Math.max(momentumX.duration, momentumY.duration);
         }
         
-        // If we've moved, we will need to scroll
-        if(newX != _this.x || newY != _this.y) {
-          // If the end position is out of bounds, change the function we use for easing
-          // to get a different animation for the rubber banding
-          if ( newX > 0 || newX < (-totalWidth + parentWidth) || newY > 0 || newY < (-totalHeight + parentHeight)) {
-            easing = EASING_FUNCTIONS.bounce;
+        self.doTouchStart(e.touches, e.timeStamp);
+        e.preventDefault();
+      }, false);
+
+      document.addEventListener("touchmove", function(e) {
+        if(e.defaultPrevented) {
+          return;
+        }
+        self.doTouchMove(e.touches, e.timeStamp);
+      }, false);
+
+      document.addEventListener("touchend", function(e) {
+        self.doTouchEnd(e.timeStamp);
+      }, false);
+      
+    } else {
+      
+      var mousedown = false;
+
+      container.addEventListener("mousedown", function(e) {
+        // Don't react if initial down happens on a form element
+        if (e.target.tagName.match(/input|textarea|select/i)) {
+          return;
+        }
+        
+        self.doTouchStart([{
+          pageX: e.pageX,
+          pageY: e.pageY
+        }], e.timeStamp);
+
+        mousedown = true;
+      }, false);
+
+      document.addEventListener("mousemove", function(e) {
+        if (!mousedown || e.defaultPrevented) {
+          return;
+        }
+
+        self.doTouchMove([{
+          pageX: e.pageX,
+          pageY: e.pageY
+        }], e.timeStamp);
+
+        mousedown = true;
+      }, false);
+
+      document.addEventListener("mouseup", function(e) {
+        if (!mousedown) {
+          return;
+        }
+
+        self.doTouchEnd(e.timeStamp);
+
+        mousedown = false;
+      }, false);
+      
+    }
+  },
+
+  /** Create a scroll bar div with the given direction **/
+  __createScrollbar: function(direction) {
+    var bar = document.createElement('div'),
+      indicator = document.createElement('div');
+
+    indicator.className = 'scroll-bar-indicator';
+
+    if(direction == 'h') {
+      bar.className = 'scroll-bar scroll-bar-h';
+    } else {
+      bar.className = 'scroll-bar scroll-bar-v';
+    }
+
+    bar.appendChild(indicator);
+    return bar;
+  },
+
+  __createScrollbars: function() {
+    var indicatorX, indicatorY;
+
+    if(this.options.scrollingX) {
+      indicatorX = {
+        el: this.__createScrollbar('h'),
+        sizeRatio: 1
+      };
+      indicatorX.indicator = indicatorX.el.children[0];
+
+      if(this.options.scrollbarX) {
+        this.__container.appendChild(indicatorX.el);
+      }
+      this.__indicatorX = indicatorX;
+    }
+
+    if(this.options.scrollingY) {
+      indicatorY = {
+        el: this.__createScrollbar('v'),
+        sizeRatio: 1
+      };
+      indicatorY.indicator = indicatorY.el.children[0];
+
+      if(this.options.scrollbarY) {
+        this.__container.appendChild(indicatorY.el);
+      }
+      this.__indicatorY = indicatorY;
+    }
+  },
+
+  __resizeScrollbars: function() {
+    var self = this;
+
+    // Bring the scrollbars in to show the content change
+    self.__fadeScrollbars('in');
+
+    // Update horiz bar
+    if(self.__indicatorX) {
+      var width = Math.max(Math.round(self.__clientWidth * self.__clientWidth / (self.__contentWidth)), 20);
+      if(width > self.__contentWidth) {
+        width = 0;
+      }
+      self.__indicatorX.size = width;
+      self.__indicatorX.minScale = this.options.minScrollbarSizeX / width;
+      self.__indicatorX.indicator.style.width = width + 'px';
+      self.__indicatorX.maxPos = self.__clientWidth - width;
+      self.__indicatorX.sizeRatio = self.__maxScrollLeft ? self.__indicatorX.maxPos / self.__maxScrollLeft : 1;
+    }
+
+    // Update vert bar
+    if(self.__indicatorY) {
+      var height = Math.max(Math.round(self.__clientHeight * self.__clientHeight / (self.__contentHeight)), 20);
+      if(height > self.__contentHeight) {
+        height = 0;
+      }
+      self.__indicatorY.size = height;
+      self.__indicatorY.minScale = this.options.minScrollbarSizeY / height;
+      self.__indicatorY.maxPos = self.__clientHeight - height;
+      self.__indicatorY.indicator.style.height = height + 'px';
+      self.__indicatorY.sizeRatio = self.__maxScrollTop ? self.__indicatorY.maxPos / self.__maxScrollTop : 1;
+    }
+  },
+
+  /**
+   * Move and scale the scrollbars as the page scrolls.
+   */
+  __repositionScrollbars: function() {
+    var self = this, width, heightScale,
+        widthDiff, heightDiff,
+        x, y,
+        xstop = 0, ystop = 0;
+
+    if(self.__indicatorX) {
+      // Handle the X scrollbar
+
+      // Don't go all the way to the right if we have a vertical scrollbar as well
+      if(self.__indicatorY) xstop = 10;
+
+      x = Math.round(self.__indicatorX.sizeRatio * self.__scrollLeft) || 0,
+
+      // The the difference between the last content X position, and our overscrolled one
+      widthDiff = self.__scrollLeft - (self.__maxScrollLeft - xstop);
+
+      if(self.__scrollLeft < 0) {
+
+        widthScale = Math.max(self.__indicatorX.minScale,
+            (self.__indicatorX.size - Math.abs(self.__scrollLeft)) / self.__indicatorX.size);
+
+        // Stay at left
+        x = 0;
+
+        // Make sure scale is transformed from the left/center origin point
+        self.__indicatorX.indicator.style[self.__transformOriginProperty] = 'left center';
+      } else if(widthDiff > 0) {
+
+        widthScale = Math.max(self.__indicatorX.minScale,
+            (self.__indicatorX.size - widthDiff) / self.__indicatorX.size);
+
+        // Stay at the furthest x for the scrollable viewport
+        x = self.__indicatorX.maxPos - xstop;
+
+        // Make sure scale is transformed from the right/center origin point
+        self.__indicatorX.indicator.style[self.__transformOriginProperty] = 'right center';
+
+      } else {
+
+        // Normal motion
+        x = Math.min(self.__maxScrollLeft, Math.max(0, x));
+        widthScale = 1;
+
+      }
+
+      self.__indicatorX.indicator.style[self.__transformProperty] = 'translate3d(' + x + 'px, 0, 0) scaleX(' + widthScale + ')';
+    }
+
+    if(self.__indicatorY) {
+
+      y = Math.round(self.__indicatorY.sizeRatio * self.__scrollTop) || 0;
+
+      // Don't go all the way to the right if we have a vertical scrollbar as well
+      if(self.__indicatorX) ystop = 10;
+
+      heightDiff = self.__scrollTop - (self.__maxScrollTop - ystop);
+
+      if(self.__scrollTop < 0) {
+
+        heightScale = Math.max(self.__indicatorY.minScale, (self.__indicatorY.size - Math.abs(self.__scrollTop)) / self.__indicatorY.size);
+
+        // Stay at top
+        y = 0;
+
+        // Make sure scale is transformed from the center/top origin point
+        self.__indicatorY.indicator.style[self.__transformOriginProperty] = 'center top';
+
+      } else if(heightDiff > 0) {
+
+        heightScale = Math.max(self.__indicatorY.minScale, (self.__indicatorY.size - heightDiff) / self.__indicatorY.size);
+
+        // Stay at bottom of scrollable viewport
+        y = self.__indicatorY.maxPos - ystop;
+
+        // Make sure scale is transformed from the center/bottom origin point
+        self.__indicatorY.indicator.style[self.__transformOriginProperty] = 'center bottom';
+
+      } else {
+
+        // Normal motion
+        y = Math.min(self.__maxScrollTop, Math.max(0, y));
+        heightScale = 1;
+
+      }
+
+      self.__indicatorY.indicator.style[self.__transformProperty] = 'translate3d(0,' + y + 'px, 0) scaleY(' + heightScale + ')';
+    }
+  },
+
+  __fadeScrollbars: function(direction, delay) {
+    var self = this;
+
+    if(!this.options.scrollbarsFade) {
+      return;
+    }
+
+    var className = 'scroll-bar-fade-out';
+
+    if(self.options.scrollbarsFade === true) {
+      clearTimeout(self.__scrollbarFadeTimeout);
+
+      if(direction == 'in') {
+        if(self.__indicatorX) { self.__indicatorX.indicator.classList.remove(className); }
+        if(self.__indicatorY) { self.__indicatorY.indicator.classList.remove(className); }
+      } else {
+        self.__scrollbarFadeTimeout = setTimeout(function() {
+          if(self.__indicatorX) { self.__indicatorX.indicator.classList.add(className); }
+          if(self.__indicatorY) { self.__indicatorY.indicator.classList.add(className); }
+        }, delay || self.options.scrollbarFadeDelay);
+      }
+    }
+  },
+
+  __scrollingComplete: function() {
+    var self = this;
+    self.options.scrollingComplete();
+
+    self.__fadeScrollbars('out');
+  },
+
+  resize: function() {
+    // Update Scroller dimensions for changed content
+    // Add padding to bottom of content
+    this.setDimensions(
+    	this.__container.clientWidth,
+    	this.__container.clientHeight,
+    	Math.max(this.__content.scrollWidth, this.__content.offsetWidth),
+    	Math.max(this.__content.scrollHeight, this.__content.offsetHeight+20));
+  },
+  /*
+  ---------------------------------------------------------------------------
+    PUBLIC API
+  ---------------------------------------------------------------------------
+  */
+
+  getRenderFn: function() {
+    var self = this;
+
+    var content = this.__content;
+
+	  var docStyle = document.documentElement.style;
+
+    var engine;
+    if ('MozAppearance' in docStyle) {
+      engine = 'gecko';
+    } else if ('WebkitAppearance' in docStyle) {
+      engine = 'webkit';
+    } else if (typeof navigator.cpuClass === 'string') {
+      engine = 'trident';
+    }
+    
+    var vendorPrefix = {
+      trident: 'ms',
+      gecko: 'Moz',
+      webkit: 'Webkit',
+      presto: 'O'
+    }[engine];
+    
+    var helperElem = document.createElement("div");
+    var undef;
+
+    var perspectiveProperty = vendorPrefix + "Perspective";
+    var transformProperty = vendorPrefix + "Transform";
+    var transformOriginProperty = vendorPrefix + 'TransformOrigin';
+
+    self.__perspectiveProperty = transformProperty;
+    self.__transformProperty = transformProperty;
+    self.__transformOriginProperty = transformOriginProperty;
+    
+    if (helperElem.style[perspectiveProperty] !== undef) {
+      
+      return function(left, top, zoom) {
+        content.style[transformProperty] = 'translate3d(' + (-left) + 'px,' + (-top) + 'px,0)';
+        self.__repositionScrollbars();
+        self.triggerScrollEvent();
+      };	
+      
+    } else if (helperElem.style[transformProperty] !== undef) {
+      
+      return function(left, top, zoom) {
+        content.style[transformProperty] = 'translate(' + (-left) + 'px,' + (-top) + 'px)';
+        self.__repositionScrollbars();
+        self.triggerScrollEvent();
+      };
+      
+    } else {
+      
+      return function(left, top, zoom) {
+        content.style.marginLeft = left ? (-left/zoom) + 'px' : '';
+        content.style.marginTop = top ? (-top/zoom) + 'px' : '';
+        content.style.zoom = zoom || '';
+        self.__repositionScrollbars();
+        self.triggerScrollEvent();
+      };
+      
+    }
+  },
+
+
+  /**
+   * Configures the dimensions of the client (outer) and content (inner) elements.
+   * Requires the available space for the outer element and the outer size of the inner element.
+   * All values which are falsy (null or zero etc.) are ignored and the old value is kept.
+   *
+   * @param clientWidth {Integer ? null} Inner width of outer element
+   * @param clientHeight {Integer ? null} Inner height of outer element
+   * @param contentWidth {Integer ? null} Outer width of inner element
+   * @param contentHeight {Integer ? null} Outer height of inner element
+   */
+  setDimensions: function(clientWidth, clientHeight, contentWidth, contentHeight) {
+
+    var self = this;
+
+    // Only update values which are defined
+    if (clientWidth === +clientWidth) {
+      self.__clientWidth = clientWidth;
+    }
+
+    if (clientHeight === +clientHeight) {
+      self.__clientHeight = clientHeight;
+    }
+
+    if (contentWidth === +contentWidth) {
+      self.__contentWidth = contentWidth;
+    }
+
+    if (contentHeight === +contentHeight) {
+      self.__contentHeight = contentHeight;
+    }
+
+    // Refresh maximums
+    self.__computeScrollMax();
+    self.__resizeScrollbars();
+
+    // Refresh scroll position
+    self.scrollTo(self.__scrollLeft, self.__scrollTop, true);
+
+  },
+
+
+  /**
+   * Sets the client coordinates in relation to the document.
+   *
+   * @param left {Integer ? 0} Left position of outer element
+   * @param top {Integer ? 0} Top position of outer element
+   */
+  setPosition: function(left, top) {
+
+    var self = this;
+
+    self.__clientLeft = left || 0;
+    self.__clientTop = top || 0;
+
+  },
+
+
+  /**
+   * Configures the snapping (when snapping is active)
+   *
+   * @param width {Integer} Snapping width
+   * @param height {Integer} Snapping height
+   */
+  setSnapSize: function(width, height) {
+
+    var self = this;
+
+    self.__snapWidth = width;
+    self.__snapHeight = height;
+
+  },
+
+
+  /**
+   * Activates pull-to-refresh. A special zone on the top of the list to start a list refresh whenever
+   * the user event is released during visibility of this zone. This was introduced by some apps on iOS like
+   * the official Twitter client.
+   *
+   * @param height {Integer} Height of pull-to-refresh zone on top of rendered list
+   * @param activateCallback {Function} Callback to execute on activation. This is for signalling the user about a refresh is about to happen when he release.
+   * @param deactivateCallback {Function} Callback to execute on deactivation. This is for signalling the user about the refresh being cancelled.
+   * @param startCallback {Function} Callback to execute to start the real async refresh action. Call {@link #finishPullToRefresh} after finish of refresh.
+   */
+  activatePullToRefresh: function(height, activateCallback, deactivateCallback, startCallback) {
+
+    var self = this;
+
+    self.__refreshHeight = height;
+    self.__refreshActivate = activateCallback;
+    self.__refreshDeactivate = deactivateCallback;
+    self.__refreshStart = startCallback;
+
+  },
+
+
+  /**
+   * Starts pull-to-refresh manually.
+   */
+  triggerPullToRefresh: function() {
+    // Use publish instead of scrollTo to allow scrolling to out of boundary position
+    // We don't need to normalize scrollLeft, zoomLevel, etc. here because we only y-scrolling when pull-to-refresh is enabled
+    this.__publish(this.__scrollLeft, -this.__refreshHeight, this.__zoomLevel, true);
+
+    if (this.__refreshStart) {
+      this.__refreshStart();
+    }
+  },
+
+
+  /**
+   * Signalizes that pull-to-refresh is finished.
+   */
+  finishPullToRefresh: function() {
+
+    var self = this;
+
+    self.__refreshActive = false;
+    if (self.__refreshDeactivate) {
+      self.__refreshDeactivate();
+    }
+
+    self.scrollTo(self.__scrollLeft, self.__scrollTop, true);
+
+  },
+
+
+  /**
+   * Returns the scroll position and zooming values
+   *
+   * @return {Map} `left` and `top` scroll position and `zoom` level
+   */
+  getValues: function() {
+
+    var self = this;
+
+    return {
+      left: self.__scrollLeft,
+      top: self.__scrollTop,
+      zoom: self.__zoomLevel
+    };
+
+  },
+
+
+  /**
+   * Returns the maximum scroll values
+   *
+   * @return {Map} `left` and `top` maximum scroll values
+   */
+  getScrollMax: function() {
+
+    var self = this;
+
+    return {
+      left: self.__maxScrollLeft,
+      top: self.__maxScrollTop
+    };
+
+  },
+
+
+  /**
+   * Zooms to the given level. Supports optional animation. Zooms
+   * the center when no coordinates are given.
+   *
+   * @param level {Number} Level to zoom to
+   * @param animate {Boolean ? false} Whether to use animation
+   * @param originLeft {Number ? null} Zoom in at given left coordinate
+   * @param originTop {Number ? null} Zoom in at given top coordinate
+   */
+  zoomTo: function(level, animate, originLeft, originTop) {
+
+    var self = this;
+
+    if (!self.options.zooming) {
+      throw new Error("Zooming is not enabled!");
+    }
+
+    // Stop deceleration
+    if (self.__isDecelerating) {
+      core.effect.Animate.stop(self.__isDecelerating);
+      self.__isDecelerating = false;
+    }
+
+    var oldLevel = self.__zoomLevel;
+
+    // Normalize input origin to center of viewport if not defined
+    if (originLeft == null) {
+      originLeft = self.__clientWidth / 2;
+    }
+
+    if (originTop == null) {
+      originTop = self.__clientHeight / 2;
+    }
+
+    // Limit level according to configuration
+    level = Math.max(Math.min(level, self.options.maxZoom), self.options.minZoom);
+
+    // Recompute maximum values while temporary tweaking maximum scroll ranges
+    self.__computeScrollMax(level);
+
+    // Recompute left and top coordinates based on new zoom level
+    var left = ((originLeft + self.__scrollLeft) * level / oldLevel) - originLeft;
+    var top = ((originTop + self.__scrollTop) * level / oldLevel) - originTop;
+
+    // Limit x-axis
+    if (left > self.__maxScrollLeft) {
+      left = self.__maxScrollLeft;
+    } else if (left < 0) {
+      left = 0;
+    }
+
+    // Limit y-axis
+    if (top > self.__maxScrollTop) {
+      top = self.__maxScrollTop;
+    } else if (top < 0) {
+      top = 0;
+    }
+
+    // Push values out
+    self.__publish(left, top, level, animate);
+
+  },
+
+
+  /**
+   * Zooms the content by the given factor.
+   *
+   * @param factor {Number} Zoom by given factor
+   * @param animate {Boolean ? false} Whether to use animation
+   * @param originLeft {Number ? 0} Zoom in at given left coordinate
+   * @param originTop {Number ? 0} Zoom in at given top coordinate
+   */
+  zoomBy: function(factor, animate, originLeft, originTop) {
+
+    var self = this;
+
+    self.zoomTo(self.__zoomLevel * factor, animate, originLeft, originTop);
+
+  },
+
+
+  /**
+   * Scrolls to the given position. Respect limitations and snapping automatically.
+   *
+   * @param left {Number?null} Horizontal scroll position, keeps current if value is <code>null</code>
+   * @param top {Number?null} Vertical scroll position, keeps current if value is <code>null</code>
+   * @param animate {Boolean?false} Whether the scrolling should happen using an animation
+   * @param zoom {Number?null} Zoom level to go to
+   */
+  scrollTo: function(left, top, animate, zoom) {
+
+    var self = this;
+
+    // Stop deceleration
+    if (self.__isDecelerating) {
+      core.effect.Animate.stop(self.__isDecelerating);
+      self.__isDecelerating = false;
+    }
+
+    // Correct coordinates based on new zoom level
+    if (zoom != null && zoom !== self.__zoomLevel) {
+
+      if (!self.options.zooming) {
+        throw new Error("Zooming is not enabled!");
+      }
+
+      left *= zoom;
+      top *= zoom;
+
+      // Recompute maximum values while temporary tweaking maximum scroll ranges
+      self.__computeScrollMax(zoom);
+
+    } else {
+
+      // Keep zoom when not defined
+      zoom = self.__zoomLevel;
+
+    }
+
+    if (!self.options.scrollingX) {
+
+      left = self.__scrollLeft;
+
+    } else {
+
+      if (self.options.paging) {
+        left = Math.round(left / self.__clientWidth) * self.__clientWidth;
+      } else if (self.options.snapping) {
+        left = Math.round(left / self.__snapWidth) * self.__snapWidth;
+      }
+
+    }
+
+    if (!self.options.scrollingY) {
+
+      top = self.__scrollTop;
+
+    } else {
+
+      if (self.options.paging) {
+        top = Math.round(top / self.__clientHeight) * self.__clientHeight;
+      } else if (self.options.snapping) {
+        top = Math.round(top / self.__snapHeight) * self.__snapHeight;
+      }
+
+    }
+
+    // Limit for allowed ranges
+    left = Math.max(Math.min(self.__maxScrollLeft, left), 0);
+    top = Math.max(Math.min(self.__maxScrollTop, top), 0);
+
+    // Don't animate when no change detected, still call publish to make sure
+    // that rendered position is really in-sync with internal data
+    if (left === self.__scrollLeft && top === self.__scrollTop) {
+      animate = false;
+    }
+
+    // Publish new values
+    self.__publish(left, top, zoom, animate);
+
+  },
+
+
+  /**
+   * Scroll by the given offset
+   *
+   * @param left {Number ? 0} Scroll x-axis by given offset
+   * @param top {Number ? 0} Scroll x-axis by given offset
+   * @param animate {Boolean ? false} Whether to animate the given change
+   */
+  scrollBy: function(left, top, animate) {
+
+    var self = this;
+
+    var startLeft = self.__isAnimating ? self.__scheduledLeft : self.__scrollLeft;
+    var startTop = self.__isAnimating ? self.__scheduledTop : self.__scrollTop;
+
+    self.scrollTo(startLeft + (left || 0), startTop + (top || 0), animate);
+
+  },
+
+
+
+  /*
+  ---------------------------------------------------------------------------
+    EVENT CALLBACKS
+  ---------------------------------------------------------------------------
+  */
+
+  /**
+   * Mouse wheel handler for zooming support
+   */
+  doMouseZoom: function(wheelDelta, timeStamp, pageX, pageY) {
+
+    var self = this;
+    var change = wheelDelta > 0 ? 0.97 : 1.03;
+
+    return self.zoomTo(self.__zoomLevel * change, false, pageX - self.__clientLeft, pageY - self.__clientTop);
+
+  },
+
+
+  /**
+   * Touch start handler for scrolling support
+   */
+  doTouchStart: function(touches, timeStamp) {
+    this.hintResize();
+
+    // Array-like check is enough here
+    if (touches.length == null) {
+      throw new Error("Invalid touch list: " + touches);
+    }
+
+    if (timeStamp instanceof Date) {
+      timeStamp = timeStamp.valueOf();
+    }
+    if (typeof timeStamp !== "number") {
+      throw new Error("Invalid timestamp value: " + timeStamp);
+    }
+
+    var self = this;
+
+    self.__fadeScrollbars('in');
+
+    // Reset interruptedAnimation flag
+    self.__interruptedAnimation = true;
+
+    // Stop deceleration
+    if (self.__isDecelerating) {
+      core.effect.Animate.stop(self.__isDecelerating);
+      self.__isDecelerating = false;
+      self.__interruptedAnimation = true;
+    }
+
+    // Stop animation
+    if (self.__isAnimating) {
+      core.effect.Animate.stop(self.__isAnimating);
+      self.__isAnimating = false;
+      self.__interruptedAnimation = true;
+    }
+
+    // Use center point when dealing with two fingers
+    var currentTouchLeft, currentTouchTop;
+    var isSingleTouch = touches.length === 1;
+    if (isSingleTouch) {
+      currentTouchLeft = touches[0].pageX;
+      currentTouchTop = touches[0].pageY;
+    } else {
+      currentTouchLeft = Math.abs(touches[0].pageX + touches[1].pageX) / 2;
+      currentTouchTop = Math.abs(touches[0].pageY + touches[1].pageY) / 2;
+    }
+
+    // Store initial positions
+    self.__initialTouchLeft = currentTouchLeft;
+    self.__initialTouchTop = currentTouchTop;
+
+    // Store current zoom level
+    self.__zoomLevelStart = self.__zoomLevel;
+
+    // Store initial touch positions
+    self.__lastTouchLeft = currentTouchLeft;
+    self.__lastTouchTop = currentTouchTop;
+
+    // Store initial move time stamp
+    self.__lastTouchMove = timeStamp;
+
+    // Reset initial scale
+    self.__lastScale = 1;
+
+    // Reset locking flags
+    self.__enableScrollX = !isSingleTouch && self.options.scrollingX;
+    self.__enableScrollY = !isSingleTouch && self.options.scrollingY;
+
+    // Reset tracking flag
+    self.__isTracking = true;
+
+    // Reset deceleration complete flag
+    self.__didDecelerationComplete = false;
+
+    // Dragging starts directly with two fingers, otherwise lazy with an offset
+    self.__isDragging = !isSingleTouch;
+
+    // Some features are disabled in multi touch scenarios
+    self.__isSingleTouch = isSingleTouch;
+
+    // Clearing data structure
+    self.__positions = [];
+
+  },
+
+
+  /**
+   * Touch move handler for scrolling support
+   */
+  doTouchMove: function(touches, timeStamp, scale) {
+
+    // Array-like check is enough here
+    if (touches.length == null) {
+      throw new Error("Invalid touch list: " + touches);
+    }
+
+    if (timeStamp instanceof Date) {
+      timeStamp = timeStamp.valueOf();
+    }
+    if (typeof timeStamp !== "number") {
+      throw new Error("Invalid timestamp value: " + timeStamp);
+    }
+
+    var self = this;
+
+    // Ignore event when tracking is not enabled (event might be outside of element)
+    if (!self.__isTracking) {
+      return;
+    }
+
+
+    var currentTouchLeft, currentTouchTop;
+
+    // Compute move based around of center of fingers
+    if (touches.length === 2) {
+      currentTouchLeft = Math.abs(touches[0].pageX + touches[1].pageX) / 2;
+      currentTouchTop = Math.abs(touches[0].pageY + touches[1].pageY) / 2;
+    } else {
+      currentTouchLeft = touches[0].pageX;
+      currentTouchTop = touches[0].pageY;
+    }
+
+    var positions = self.__positions;
+
+    // Are we already is dragging mode?
+    if (self.__isDragging) {
+
+      // Compute move distance
+      var moveX = currentTouchLeft - self.__lastTouchLeft;
+      var moveY = currentTouchTop - self.__lastTouchTop;
+
+      // Read previous scroll position and zooming
+      var scrollLeft = self.__scrollLeft;
+      var scrollTop = self.__scrollTop;
+      var level = self.__zoomLevel;
+
+      // Work with scaling
+      if (scale != null && self.options.zooming) {
+
+        var oldLevel = level;
+
+        // Recompute level based on previous scale and new scale
+        level = level / self.__lastScale * scale;
+
+        // Limit level according to configuration
+        level = Math.max(Math.min(level, self.options.maxZoom), self.options.minZoom);
+
+        // Only do further compution when change happened
+        if (oldLevel !== level) {
+
+          // Compute relative event position to container
+          var currentTouchLeftRel = currentTouchLeft - self.__clientLeft;
+          var currentTouchTopRel = currentTouchTop - self.__clientTop;
+
+          // Recompute left and top coordinates based on new zoom level
+          scrollLeft = ((currentTouchLeftRel + scrollLeft) * level / oldLevel) - currentTouchLeftRel;
+          scrollTop = ((currentTouchTopRel + scrollTop) * level / oldLevel) - currentTouchTopRel;
+
+          // Recompute max scroll values
+          self.__computeScrollMax(level);
+
+        }
+      }
+
+      if (self.__enableScrollX) {
+
+        scrollLeft -= moveX * this.options.speedMultiplier;
+        var maxScrollLeft = self.__maxScrollLeft;
+
+        if (scrollLeft > maxScrollLeft || scrollLeft < 0) {
+
+          // Slow down on the edges
+          if (self.options.bouncing) {
+
+            scrollLeft += (moveX / 2  * this.options.speedMultiplier);
+
+          } else if (scrollLeft > maxScrollLeft) {
+
+            scrollLeft = maxScrollLeft;
+
+          } else {
+
+            scrollLeft = 0;
+
+          }
+        }
+      }
+
+      // Compute new vertical scroll position
+      if (self.__enableScrollY) {
+
+        scrollTop -= moveY * this.options.speedMultiplier;
+        var maxScrollTop = self.__maxScrollTop;
+
+        if (scrollTop > maxScrollTop || scrollTop < 0) {
+
+          // Slow down on the edges
+          if (self.options.bouncing) {
+
+            scrollTop += (moveY / 2 * this.options.speedMultiplier);
+
+            // Support pull-to-refresh (only when only y is scrollable)
+            if (!self.__enableScrollX && self.__refreshHeight != null) {
+
+              if (!self.__refreshActive && scrollTop <= -self.__refreshHeight) {
+
+                self.__refreshActive = true;
+                if (self.__refreshActivate) {
+                  self.__refreshActivate();
+                }
+
+              } else if (self.__refreshActive && scrollTop > -self.__refreshHeight) {
+
+                self.__refreshActive = false;
+                if (self.__refreshDeactivate) {
+                  self.__refreshDeactivate();
+                }
+
+              }
+            }
+
+          } else if (scrollTop > maxScrollTop) {
+
+            scrollTop = maxScrollTop;
+
+          } else {
+
+            scrollTop = 0;
+
+          }
+        }
+      }
+
+      // Keep list from growing infinitely (holding min 10, max 20 measure points)
+      if (positions.length > 60) {
+        positions.splice(0, 30);
+      }
+
+      // Track scroll movement for decleration
+      positions.push(scrollLeft, scrollTop, timeStamp);
+
+      // Sync scroll position
+      self.__publish(scrollLeft, scrollTop, level);
+
+    // Otherwise figure out whether we are switching into dragging mode now.
+    } else {
+
+      var minimumTrackingForScroll = self.options.locking ? 3 : 0;
+      var minimumTrackingForDrag = 5;
+
+      var distanceX = Math.abs(currentTouchLeft - self.__initialTouchLeft);
+      var distanceY = Math.abs(currentTouchTop - self.__initialTouchTop);
+
+      self.__enableScrollX = self.options.scrollingX && distanceX >= minimumTrackingForScroll;
+      self.__enableScrollY = self.options.scrollingY && distanceY >= minimumTrackingForScroll;
+
+      positions.push(self.__scrollLeft, self.__scrollTop, timeStamp);
+
+      self.__isDragging = (self.__enableScrollX || self.__enableScrollY) && (distanceX >= minimumTrackingForDrag || distanceY >= minimumTrackingForDrag);
+      if (self.__isDragging) {
+        self.__interruptedAnimation = false;
+      }
+
+    }
+
+    // Update last touch positions and time stamp for next event
+    self.__lastTouchLeft = currentTouchLeft;
+    self.__lastTouchTop = currentTouchTop;
+    self.__lastTouchMove = timeStamp;
+    self.__lastScale = scale;
+
+  },
+
+
+  /**
+   * Touch end handler for scrolling support
+   */
+  doTouchEnd: function(timeStamp) {
+
+    if (timeStamp instanceof Date) {
+      timeStamp = timeStamp.valueOf();
+    }
+    if (typeof timeStamp !== "number") {
+      throw new Error("Invalid timestamp value: " + timeStamp);
+    }
+
+    var self = this;
+
+    // Ignore event when tracking is not enabled (no touchstart event on element)
+    // This is required as this listener ('touchmove') sits on the document and not on the element itself.
+    if (!self.__isTracking) {
+      return;
+    }
+
+    // Not touching anymore (when two finger hit the screen there are two touch end events)
+    self.__isTracking = false;
+
+    // Be sure to reset the dragging flag now. Here we also detect whether
+    // the finger has moved fast enough to switch into a deceleration animation.
+    if (self.__isDragging) {
+
+      // Reset dragging flag
+      self.__isDragging = false;
+
+      // Start deceleration
+      // Verify that the last move detected was in some relevant time frame
+      if (self.__isSingleTouch && self.options.animating && (timeStamp - self.__lastTouchMove) <= 100) {
+
+        // Then figure out what the scroll position was about 100ms ago
+        var positions = self.__positions;
+        var endPos = positions.length - 1;
+        var startPos = endPos;
+
+        // Move pointer to position measured 100ms ago
+        for (var i = endPos; i > 0 && positions[i] > (self.__lastTouchMove - 100); i -= 3) {
+          startPos = i;
+        }
+
+        // If start and stop position is identical in a 100ms timeframe,
+        // we cannot compute any useful deceleration.
+        if (startPos !== endPos) {
+
+          // Compute relative movement between these two points
+          var timeOffset = positions[endPos] - positions[startPos];
+          var movedLeft = self.__scrollLeft - positions[startPos - 2];
+          var movedTop = self.__scrollTop - positions[startPos - 1];
+
+          // Based on 50ms compute the movement to apply for each render step
+          self.__decelerationVelocityX = movedLeft / timeOffset * (1000 / 60);
+          self.__decelerationVelocityY = movedTop / timeOffset * (1000 / 60);
+
+          // How much velocity is required to start the deceleration
+          var minVelocityToStartDeceleration = self.options.paging || self.options.snapping ? 4 : 1;
+
+          // Verify that we have enough velocity to start deceleration
+          if (Math.abs(self.__decelerationVelocityX) > minVelocityToStartDeceleration || Math.abs(self.__decelerationVelocityY) > minVelocityToStartDeceleration) {
+
+            // Deactivate pull-to-refresh when decelerating
+            if (!self.__refreshActive) {
+              self.__startDeceleration(timeStamp);
+            }
+          }
+        } else {
+          self.__scrollingComplete();
+        }
+      } else if ((timeStamp - self.__lastTouchMove) > 100) {
+        self.__scrollingComplete();
+      }
+    }
+
+    // If this was a slower move it is per default non decelerated, but this
+    // still means that we want snap back to the bounds which is done here.
+    // This is placed outside the condition above to improve edge case stability
+    // e.g. touchend fired without enabled dragging. This should normally do not
+    // have modified the scroll positions or even showed the scrollbars though.
+    if (!self.__isDecelerating) {
+
+      if (self.__refreshActive && self.__refreshStart) {
+
+        // Use publish instead of scrollTo to allow scrolling to out of boundary position
+        // We don't need to normalize scrollLeft, zoomLevel, etc. here because we only y-scrolling when pull-to-refresh is enabled
+        self.__publish(self.__scrollLeft, -self.__refreshHeight, self.__zoomLevel, true);
+
+        if (self.__refreshStart) {
+          self.__refreshStart();
+        }
+
+      } else {
+
+        if (self.__interruptedAnimation || self.__isDragging) {
+          self.__scrollingComplete();
+        }
+        self.scrollTo(self.__scrollLeft, self.__scrollTop, true, self.__zoomLevel);
+
+        // Directly signalize deactivation (nothing todo on refresh?)
+        if (self.__refreshActive) {
+
+          self.__refreshActive = false;
+          if (self.__refreshDeactivate) {
+            self.__refreshDeactivate();
           }
 
-          _this._scrollTo(newX, newY, time, easing);
-        } else {
-          // We are done
-          _this._doneScrolling();
         }
-      });
-    },
-
-    /**
-     * Trigger a done scrolling event.
-     */
-    _doneScrolling: function() {
-      this.didStopScrolling && this.didStopScrolling({
-        target: this.el,
-        scrollLeft: this.x,
-        scrollTop: this.y
-      });
-      ionic.trigger(this.scrollEndEventName, {
-        target: this.el,
-        scrollLeft: this.x,
-        scrollTop: this.y
-      });
+      }
     }
-  }, {
-    DECEL_RATE_NORMAL: 0.998,
-    DECEL_RATE_FAST: 0.99,
-    DECEL_RATE_SLOW: 0.996,
-  });
+
+    // Fully cleanup list
+    self.__positions.length = 0;
+
+  },
+
+
+
+  /*
+  ---------------------------------------------------------------------------
+    PRIVATE API
+  ---------------------------------------------------------------------------
+  */
+
+  /**
+   * Applies the scroll position to the content element
+   *
+   * @param left {Number} Left scroll position
+   * @param top {Number} Top scroll position
+   * @param animate {Boolean?false} Whether animation should be used to move to the new coordinates
+   */
+  __publish: function(left, top, zoom, animate) {
+
+    var self = this;
+
+    // Remember whether we had an animation, then we try to continue based on the current "drive" of the animation
+    var wasAnimating = self.__isAnimating;
+    if (wasAnimating) {
+      core.effect.Animate.stop(wasAnimating);
+      self.__isAnimating = false;
+    }
+
+    if (animate && self.options.animating) {
+
+      // Keep scheduled positions for scrollBy/zoomBy functionality
+      self.__scheduledLeft = left;
+      self.__scheduledTop = top;
+      self.__scheduledZoom = zoom;
+
+      var oldLeft = self.__scrollLeft;
+      var oldTop = self.__scrollTop;
+      var oldZoom = self.__zoomLevel;
+
+      var diffLeft = left - oldLeft;
+      var diffTop = top - oldTop;
+      var diffZoom = zoom - oldZoom;
+
+      var step = function(percent, now, render) {
+
+        if (render) {
+
+          self.__scrollLeft = oldLeft + (diffLeft * percent);
+          self.__scrollTop = oldTop + (diffTop * percent);
+          self.__zoomLevel = oldZoom + (diffZoom * percent);
+
+          // Push values out
+          if (self.__callback) {
+            self.__callback(self.__scrollLeft, self.__scrollTop, self.__zoomLevel);
+          }
+
+        }
+      };
+
+      var verify = function(id) {
+        return self.__isAnimating === id;
+      };
+
+      var completed = function(renderedFramesPerSecond, animationId, wasFinished) {
+        if (animationId === self.__isAnimating) {
+          self.__isAnimating = false;
+        }
+        if (self.__didDecelerationComplete || wasFinished) {
+          self.__scrollingComplete();
+        }
+
+        if (self.options.zooming) {
+          self.__computeScrollMax();
+        }
+      };
+
+      // When continuing based on previous animation we choose an ease-out animation instead of ease-in-out
+      self.__isAnimating = core.effect.Animate.start(step, verify, completed, self.options.animationDuration, wasAnimating ? easeOutCubic : easeInOutCubic);
+
+    } else {
+
+      self.__scheduledLeft = self.__scrollLeft = left;
+      self.__scheduledTop = self.__scrollTop = top;
+      self.__scheduledZoom = self.__zoomLevel = zoom;
+
+      // Push values out
+      if (self.__callback) {
+        self.__callback(left, top, zoom);
+      }
+
+      // Fix max scroll ranges
+      if (self.options.zooming) {
+        self.__computeScrollMax();
+      }
+    }
+  },
+
+
+  /**
+   * Recomputes scroll minimum values based on client dimensions and content dimensions.
+   */
+  __computeScrollMax: function(zoomLevel) {
+
+    var self = this;
+
+    if (zoomLevel == null) {
+      zoomLevel = self.__zoomLevel;
+    }
+
+    self.__maxScrollLeft = Math.max((self.__contentWidth * zoomLevel) - self.__clientWidth, 0);
+    self.__maxScrollTop = Math.max((self.__contentHeight * zoomLevel) - self.__clientHeight, 0);
+
+    if(!self.__didWaitForSize && self.__maxScrollLeft == 0 && self.__maxScrollTop == 0) {
+      self.__didWaitForSize = true;
+      self.__waitForSize();
+    }
+  },
+
+
+  /**
+   * If the scroll view isn't sized correctly on start, wait until we have at least some size
+   */
+  __waitForSize: function() {
+
+    var self = this;
+
+    clearTimeout(self.__sizerTimeout);
+
+    var sizer = function() {
+      self.resize();
+        
+      if((self.options.scrollingX && self.__maxScrollLeft == 0) || (self.options.scrollingY && self.__maxScrollTop == 0)) {
+        //self.__sizerTimeout = setTimeout(sizer, 1000);
+      }
+    };
+
+    sizer();
+    self.__sizerTimeout = setTimeout(sizer, 1000);
+  },
+
+  /*
+  ---------------------------------------------------------------------------
+    ANIMATION (DECELERATION) SUPPORT
+  ---------------------------------------------------------------------------
+  */
+
+  /**
+   * Called when a touch sequence end and the speed of the finger was high enough
+   * to switch into deceleration mode.
+   */
+  __startDeceleration: function(timeStamp) {
+
+    var self = this;
+
+    if (self.options.paging) {
+
+      var scrollLeft = Math.max(Math.min(self.__scrollLeft, self.__maxScrollLeft), 0);
+      var scrollTop = Math.max(Math.min(self.__scrollTop, self.__maxScrollTop), 0);
+      var clientWidth = self.__clientWidth;
+      var clientHeight = self.__clientHeight;
+
+      // We limit deceleration not to the min/max values of the allowed range, but to the size of the visible client area.
+      // Each page should have exactly the size of the client area.
+      self.__minDecelerationScrollLeft = Math.floor(scrollLeft / clientWidth) * clientWidth;
+      self.__minDecelerationScrollTop = Math.floor(scrollTop / clientHeight) * clientHeight;
+      self.__maxDecelerationScrollLeft = Math.ceil(scrollLeft / clientWidth) * clientWidth;
+      self.__maxDecelerationScrollTop = Math.ceil(scrollTop / clientHeight) * clientHeight;
+
+    } else {
+
+      self.__minDecelerationScrollLeft = 0;
+      self.__minDecelerationScrollTop = 0;
+      self.__maxDecelerationScrollLeft = self.__maxScrollLeft;
+      self.__maxDecelerationScrollTop = self.__maxScrollTop;
+
+    }
+
+    // Wrap class method
+    var step = function(percent, now, render) {
+      self.__stepThroughDeceleration(render);
+    };
+
+    // How much velocity is required to keep the deceleration running
+    var minVelocityToKeepDecelerating = self.options.snapping ? 4 : 0.1;
+
+    // Detect whether it's still worth to continue animating steps
+    // If we are already slow enough to not being user perceivable anymore, we stop the whole process here.
+    var verify = function() {
+      var shouldContinue = Math.abs(self.__decelerationVelocityX) >= minVelocityToKeepDecelerating || Math.abs(self.__decelerationVelocityY) >= minVelocityToKeepDecelerating;
+      if (!shouldContinue) {
+        self.__didDecelerationComplete = true;
+      }
+      return shouldContinue;
+    };
+
+    var completed = function(renderedFramesPerSecond, animationId, wasFinished) {
+      self.__isDecelerating = false;
+      if (self.__didDecelerationComplete) {
+        self.__scrollingComplete();
+      }
+
+      // Animate to grid when snapping is active, otherwise just fix out-of-boundary positions
+      if(self.options.paging) {
+        self.scrollTo(self.__scrollLeft, self.__scrollTop, self.options.snapping);
+      }
+    };
+
+    // Start animation and switch on flag
+    self.__isDecelerating = core.effect.Animate.start(step, verify, completed);
+
+  },
+
+
+  /**
+   * Called on every step of the animation
+   *
+   * @param inMemory {Boolean?false} Whether to not render the current step, but keep it in memory only. Used internally only!
+   */
+  __stepThroughDeceleration: function(render) {
+
+    var self = this;
+
+
+    //
+    // COMPUTE NEXT SCROLL POSITION
+    //
+
+    // Add deceleration to scroll position
+    var scrollLeft = self.__scrollLeft + self.__decelerationVelocityX;
+    var scrollTop = self.__scrollTop + self.__decelerationVelocityY;
+
+
+    //
+    // HARD LIMIT SCROLL POSITION FOR NON BOUNCING MODE
+    //
+
+    if (!self.options.bouncing) {
+
+      var scrollLeftFixed = Math.max(Math.min(self.__maxDecelerationScrollLeft, scrollLeft), self.__minDecelerationScrollLeft);
+      if (scrollLeftFixed !== scrollLeft) {
+        scrollLeft = scrollLeftFixed;
+        self.__decelerationVelocityX = 0;
+      }
+
+      var scrollTopFixed = Math.max(Math.min(self.__maxDecelerationScrollTop, scrollTop), self.__minDecelerationScrollTop);
+      if (scrollTopFixed !== scrollTop) {
+        scrollTop = scrollTopFixed;
+        self.__decelerationVelocityY = 0;
+      }
+
+    }
+
+
+    //
+    // UPDATE SCROLL POSITION
+    //
+
+    if (render) {
+
+      self.__publish(scrollLeft, scrollTop, self.__zoomLevel);
+
+    } else {
+
+      self.__scrollLeft = scrollLeft;
+      self.__scrollTop = scrollTop;
+
+    }
+
+
+    //
+    // SLOW DOWN
+    //
+
+    // Slow down velocity on every iteration
+    if (!self.options.paging) {
+
+      // This is the factor applied to every iteration of the animation
+      // to slow down the process. This should emulate natural behavior where
+      // objects slow down when the initiator of the movement is removed
+      var frictionFactor = 0.95;
+
+      self.__decelerationVelocityX *= frictionFactor;
+      self.__decelerationVelocityY *= frictionFactor;
+
+    }
+
+
+    //
+    // BOUNCING SUPPORT
+    //
+
+    if (self.options.bouncing) {
+
+      var scrollOutsideX = 0;
+      var scrollOutsideY = 0;
+
+      // This configures the amount of change applied to deceleration/acceleration when reaching boundaries
+      var penetrationDeceleration = self.options.penetrationDeceleration; 
+      var penetrationAcceleration = self.options.penetrationAcceleration; 
+
+      // Check limits
+      if (scrollLeft < self.__minDecelerationScrollLeft) {
+        scrollOutsideX = self.__minDecelerationScrollLeft - scrollLeft;
+      } else if (scrollLeft > self.__maxDecelerationScrollLeft) {
+        scrollOutsideX = self.__maxDecelerationScrollLeft - scrollLeft;
+      }
+
+      if (scrollTop < self.__minDecelerationScrollTop) {
+        scrollOutsideY = self.__minDecelerationScrollTop - scrollTop;
+      } else if (scrollTop > self.__maxDecelerationScrollTop) {
+        scrollOutsideY = self.__maxDecelerationScrollTop - scrollTop;
+      }
+
+      // Slow down until slow enough, then flip back to snap position
+      if (scrollOutsideX !== 0) {
+        if (scrollOutsideX * self.__decelerationVelocityX <= 0) {
+          self.__decelerationVelocityX += scrollOutsideX * penetrationDeceleration;
+        } else {
+          self.__decelerationVelocityX = scrollOutsideX * penetrationAcceleration;
+        }
+      }
+
+      if (scrollOutsideY !== 0) {
+        if (scrollOutsideY * self.__decelerationVelocityY <= 0) {
+          self.__decelerationVelocityY += scrollOutsideY * penetrationDeceleration;
+        } else {
+          self.__decelerationVelocityY = scrollOutsideY * penetrationAcceleration;
+        }
+      }
+    }
+  }
+});
 
 })(ionic);
 ;
@@ -2870,17 +4148,8 @@ window.ionic = {
       var _this = this;
 
       window.rAF(ionic.proxy(function() {
-        var i, c, childSize, childStyle;
-        var children = this.el.children;
+        var i, c, childSize;
         var childNodes = this.el.childNodes;
-        var styles = window.getComputedStyle(this.el, null);
-
-        // Get the padding of the header for calculations
-        var paddingLeft = parseFloat(styles['paddingLeft']);
-        var paddingRight = parseFloat(styles['paddingRight']);
-
-        // Get the full width of the header
-        var headerWidth = this.el.offsetWidth;
 
         // Find the title element
         var title = this.el.querySelector('.title');
@@ -2890,7 +4159,7 @@ window.ionic = {
       
         var leftWidth = 0;
         var rightWidth = 0;
-        var titlePos = Array.prototype.indexOf.call(this.el.childNodes, title);
+        var titlePos = Array.prototype.indexOf.call(childNodes, title);
 
         // Compute how wide the left children are
         for(i = 0; i < titlePos; i++) {
@@ -2925,21 +4194,25 @@ window.ionic = {
         // Size and align the header title based on the sizes of the left and
         // right children, and the desired alignment mode
         if(this.alignTitle == 'center') {
-          title.style.left = margin + 'px';
-          title.style.right = margin + 'px';
-
+          if(margin > 10) {
+            title.style.left = margin + 'px';
+            title.style.right = margin + 'px';
+          }
           if(title.offsetWidth < title.scrollWidth) {
-            title.style.textAlign = 'left';
-            title.style.right = (rightWidth + 5) + 'px';
-          } else {
-            title.style.textAlign = 'center';
+            if(rightWidth > 0) {
+              title.style.right = (rightWidth + 5) + 'px';
+            }
           }
         } else if(this.alignTitle == 'left') {
-          title.style.textAlign = 'left';
-          title.style.left = (leftWidth + 15) + 'px';
+          title.classList.add('title-left');
+          if(leftWidth > 0) {
+            title.style.left = (leftWidth + 15) + 'px';
+          }
         } else if(this.alignTitle == 'right') {
-          title.style.textAlign = 'right';
-          title.style.right = (rightWidth + 15) + 'px';
+          title.classList.add('title-right');
+          if(rightWidth > 0) {
+            title.style.right = (rightWidth + 15) + 'px';
+          }
         }
       }, this));
     }
@@ -3042,6 +4315,7 @@ window.ionic = {
         }
 
         _this._currentDrag.content.style.webkitTransform = 'translate3d(' + newX + 'px, 0, 0)';
+        _this._currentDrag.content.style.webkitTransition = 'none';
       }
     });
   };
@@ -3072,22 +4346,28 @@ window.ionic = {
 
     }
 
-    var content = this._currentDrag.content;
+    // var content = this._currentDrag.content;
 
-    var onRestingAnimationEnd = function(e) {
-      if(e.propertyName == '-webkit-transform') {
-        content.classList.remove(ITEM_SLIDING_CLASS);
-      }
-      e.target.removeEventListener('webkitTransitionEnd', onRestingAnimationEnd);
-    };
+    // var onRestingAnimationEnd = function(e) {
+    //   if(e.propertyName == '-webkit-transform') {
+    //     if(content) content.classList.remove(ITEM_SLIDING_CLASS);
+    //   }
+    //   e.target.removeEventListener('webkitTransitionEnd', onRestingAnimationEnd);
+    // };
 
     window.rAF(function() {
-      var currentX = parseFloat(_this._currentDrag.content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-      if(currentX !== restingPoint) {
-        _this._currentDrag.content.classList.add(ITEM_SLIDING_CLASS);
-        _this._currentDrag.content.addEventListener('webkitTransitionEnd', onRestingAnimationEnd);
+      // var currentX = parseFloat(_this._currentDrag.content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
+      // if(currentX !== restingPoint) {
+      //   _this._currentDrag.content.classList.add(ITEM_SLIDING_CLASS);
+      //   _this._currentDrag.content.addEventListener('webkitTransitionEnd', onRestingAnimationEnd);
+      // }
+      if(restingPoint === 0) {
+        _this._currentDrag.content.style.webkitTransform = '';
+      } else {
+        _this._currentDrag.content.style.webkitTransform = 'translate3d(' + restingPoint + 'px, 0, 0)';
       }
-      _this._currentDrag.content.style.webkitTransform = 'translate3d(' + restingPoint + 'px, 0, 0)';
+      _this._currentDrag.content.style.webkitTransition = '';
+      
 
       // Kill the current drag
       _this._currentDrag = null;
@@ -3100,6 +4380,7 @@ window.ionic = {
 
   var ReorderDrag = function(opts) {
     this.dragThresholdY = opts.dragThresholdY || 0;
+    this.onReorder = opts.onReorder;
     this.el = opts.el;
   };
 
@@ -3112,6 +4393,8 @@ window.ionic = {
     // Grab the starting Y point for the item
     var offsetY = this.el.offsetTop;//parseFloat(this.el.style.webkitTransform.replace('translate3d(', '').split(',')[1]) || 0;
 
+    var startIndex = ionic.DomUtil.getChildIndex(this.el, this.el.nodeName.toLowerCase());
+
     var placeholder = this.el.cloneNode(true);
 
     placeholder.classList.add(ITEM_PLACEHOLDER_CLASS);
@@ -3120,9 +4403,9 @@ window.ionic = {
 
     this.el.classList.add(ITEM_REORDERING_CLASS);
 
-
     this._currentDrag = {
       startOffsetTop: offsetY,
+      startIndex: startIndex,
       placeholder: placeholder
     };
   };
@@ -3188,9 +4471,11 @@ window.ionic = {
     this.el.classList.remove(ITEM_REORDERING_CLASS);
     this.el.style.top = 0;
 
-    var finalPosition = ionic.DomUtil.getChildIndex(placeholder);
+    var finalPosition = ionic.DomUtil.getChildIndex(placeholder, placeholder.nodeName.toLowerCase());
     placeholder.parentNode.insertBefore(this.el, placeholder);
     placeholder.parentNode.removeChild(placeholder);
+
+    this.onReorder && this.onReorder(this.el, this._currentDrag.startIndex, finalPosition);
 
     this._currentDrag = null;
     doneCallback && doneCallback();
@@ -3202,11 +4487,12 @@ window.ionic = {
    * The ListView handles a list of items. It will process drag animations, edit mode,
    * and other operations that are common on mobile lists or table views.
    */
-  ionic.views.ListView = ionic.views.Scroll.inherit({
+  ionic.views.ListView = ionic.views.View.inherit({
     initialize: function(opts) {
       var _this = this;
 
       opts = ionic.extend({
+        onReorder: function(el, oldIndex, newIndex) {},
         virtualRemoveThreshold: -200,
         virtualAddThreshold: 200
       }, opts);
@@ -3214,10 +4500,10 @@ window.ionic = {
       ionic.extend(this, opts);
 
       if(!this.itemHeight && this.listEl) {
-        this.itemHeight = this.listEl.children[0] && parseInt(this.listEl.children[0].style.height);
+        this.itemHeight = this.listEl.children[0] && parseInt(this.listEl.children[0].style.height, 10);
       }
 
-      ionic.views.ListView.__super__.initialize.call(this, opts);
+      //ionic.views.ListView.__super__.initialize.call(this, opts);
 
       this.onRefresh = opts.onRefresh || function() {};
       this.onRefreshOpening = opts.onRefreshOpening || function() {};
@@ -3228,9 +4514,12 @@ window.ionic = {
       }, this.el);
 
       window.ionic.onGesture('release', function(e) {
-        _this._handleTouchRelease(e);
+        _this._handleEndDrag(e);
       }, this.el);
         
+      window.ionic.onGesture('drag', function(e) {
+        _this._handleDrag(e);
+      }, this.el);
       // Start the drag states
       this._initDrag();
     },
@@ -3276,8 +4565,8 @@ window.ionic = {
 
         // Get the first and last elements in the list based on how many can fit
         // between the pixel range of lowWater and highWater
-        var first = parseInt(Math.abs(highWater / itemHeight));
-        var last = parseInt(Math.abs(lowWater / itemHeight));
+        var first = parseInt(Math.abs(highWater / itemHeight), 10);
+        var last = parseInt(Math.abs(lowWater / itemHeight), 10);
 
         // Get the items we need to remove
         this._virtualItemsToRemove = Array.prototype.slice.call(this.listEl.children, 0, first);
@@ -3302,7 +4591,7 @@ window.ionic = {
     },
 
     _initDrag: function() {
-      ionic.views.ListView.__super__._initDrag.call(this);
+      //ionic.views.ListView.__super__._initDrag.call(this);
 
       //this._isDragging = false;
       this._dragOp = null;
@@ -3330,7 +4619,12 @@ window.ionic = {
         var item = this._getItem(e.target);
 
         if(item) {
-          this._dragOp = new ReorderDrag({ el: item });
+          this._dragOp = new ReorderDrag({
+            el: item,
+            onReorder: function(el, start, end) {
+              _this.onReorder && _this.onReorder(el, start, end);
+            }
+          });
           this._dragOp.start(e);
           e.preventDefault();
           return;
@@ -3346,7 +4640,7 @@ window.ionic = {
       }
 
       // We aren't handling it, so pass it up the chain
-      ionic.views.ListView.__super__._startDrag.call(this, e);
+      //ionic.views.ListView.__super__._startDrag.call(this, e);
     },
 
 
@@ -3354,8 +4648,15 @@ window.ionic = {
       var _this = this;
       
       if(!this._dragOp) {
-        ionic.views.ListView.__super__._handleEndDrag.call(this, e);
+        //ionic.views.ListView.__super__._handleEndDrag.call(this, e);
         return;
+      }
+
+      // Cancel touch timeout
+      clearTimeout(this._touchTimeout);
+      var items = _this.el.querySelectorAll('.item');
+      for(var i = 0, l = items.length; i < l; i++) {
+        items[i].classList.remove('active');
       }
 
       this._dragOp.end(e, function() {
@@ -3384,11 +4685,11 @@ window.ionic = {
 
       // No drag still, pass it up
       if(!this._dragOp) { 
-        ionic.views.ListView.__super__._handleDrag.call(this, e);
+        //ionic.views.ListView.__super__._handleDrag.call(this, e);
         return;
       }
 
-      e.preventDefault();
+      e.gesture.srcEvent.preventDefault();
       this._dragOp.drag(e);
     },
 
@@ -3410,19 +4711,6 @@ window.ionic = {
       }, 250);
     },
 
-    /**
-     * Handle the release event to remove the active state on an item if necessary.
-     */
-    _handleTouchRelease: function(e) {
-      var _this = this;
-
-      // Cancel touch timeout
-      clearTimeout(this._touchTimeout);
-      var items = _this.el.querySelectorAll('.item');
-      for(var i = 0, l = items.length; i < l; i++) {
-        items[i].classList.remove('active');
-      }
-    }
   });
 
 })(ionic);
@@ -3453,7 +4741,7 @@ window.ionic = {
 
         var width = Math.min(_this.maxWidth, Math.max(window.outerWidth - 40, lb.offsetWidth));
 
-        lb.style.width = width;
+        lb.style.width = width + 'px';
 
         lb.style.marginLeft = (-lb.offsetWidth) / 2 + 'px';
         lb.style.marginTop = (-lb.offsetHeight) / 2 + 'px';
@@ -3477,7 +4765,7 @@ window.ionic = {
   ionic.views.Modal = ionic.views.View.inherit({
     initialize: function(opts) {
       opts = ionic.extend({
-        focusFirstInput: true,
+        focusFirstInput: false,
         unfocusOnHide: true
       }, opts);
 
@@ -3665,341 +4953,589 @@ window.ionic = {
 
 })(ionic);
 ;
-/**
- * The SlideBox is a swipeable, slidable, slideshowable box. Think of any image gallery
- * or iOS "dot" pager gallery, or maybe a carousel.
+/*
+ * Adapted from Swipe.js 2.0
  *
- * Each screen fills the full width and height of the viewport, and screens can
- * be swiped between, or set to automatically transition.
- */
+ * Brad Birdsall
+ * Copyright 2013, MIT License
+ *
+*/
+
 (function(ionic) {
 'use strict';
 
-  ionic.views.SlideBox = ionic.views.View.inherit({
-    initialize: function(opts) {
-      var _this = this;
+ionic.views.Slider = ionic.views.View.inherit({
+  initialize: function (options) {
+    // utilities
+    var noop = function() {}; // simple no operation function
+    var offloadFn = function(fn) { setTimeout(fn || noop, 0) }; // offload a functions execution
 
-      this.slideChanged = opts.slideChanged || function() {};
-      this.el = opts.el;
-      this.pager = this.el.querySelector('.slide-box-pager');
+    // check browser capabilities
+    var browser = {
+      addEventListener: !!window.addEventListener,
+      touch: ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch,
+      transitions: (function(temp) {
+        var props = ['transitionProperty', 'WebkitTransition', 'MozTransition', 'OTransition', 'msTransition'];
+        for ( var i in props ) if (temp.style[ props[i] ] !== undefined) return true;
+        return false;
+      })(document.createElement('swipe'))
+    };
 
-      // The drag threshold is the pixel delta that will trigger a drag (to 
-      // avoid accidental dragging)
-      this.dragThresholdX = opts.dragThresholdX || 10;
-      // The velocity threshold is a velocity of drag that indicates a "swipe". This
-      // number is taken from hammer.js's calculations
-      this.velocityXThreshold = opts.velocityXThreshold || 0.3;
 
-      // Initialize the slide index to the first page and update the pager
-      this.slideIndex = 0;
-      this._updatePager();
+    var container = options.el;
 
-      // Listen for drag and release events
-      window.ionic.onGesture('drag', function(e) {
-        _this._handleDrag(e);
-      }, this.el);
-      window.ionic.onGesture('release', function(e) {
-        _this._handleEndDrag(e);
-      }, this.el);
-    },
+    // quit if no root element
+    if (!container) return;
+    var element = container.children[0];
+    var slides, slidePos, width, length;
+    options = options || {};
+    var index = parseInt(options.startSlide, 10) || 0;
+    var speed = options.speed || 300;
+    options.continuous = options.continuous !== undefined ? options.continuous : true;
 
-    /**
-     * Tell the pager to update itself if content is added or
-     * removed. 
-     */
-    update: function() {
-      this._updatePager();
-    },
+    function setup() {
 
-    prependSlide: function(el) {
-      var content = this.el.firstElementChild;
-      if(!content) { return; }
+      // cache slides
+      slides = element.children;
+      length = slides.length;
 
-      var slideWidth = content.offsetWidth;
-      var offsetX = parseFloat(content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-      var newOffsetX = Math.min(0, offsetX - slideWidth);
-          
-      content.insertBefore(el, content.firstChild);
+      // set continuous to false if only one slide
+      if (slides.length < 2) options.continuous = false;
 
-      content.classList.remove('slide-box-animating');
-      content.style.webkitTransform = 'translate3d(' + newOffsetX + 'px, 0, 0)';
-
-      this._prependPagerIcon();
-      this.slideIndex = (this.slideIndex + 1) % content.children.length;
-      this._updatePager();
-    },
-
-    appendSlide: function(el) {
-      var content = this.el.firstElementChild;
-      if(!content) { return; }
-
-      content.classList.remove('slide-box-animating');
-      content.appendChild(el);
-
-      this._appendPagerIcon();
-      this._updatePager();
-    },
-
-    removeSlide: function(index) {
-      var content = this.el.firstElementChild;
-      if(!content) { return; }
-
-      var items = this.el.firstElementChild;
-      items.removeChild(items.firstElementChild);
-
-      var slideWidth = content.offsetWidth;
-      var offsetX = parseFloat(content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-      var newOffsetX = Math.min(0, offsetX + slideWidth);
-          
-      content.classList.remove('slide-box-animating');
-      content.style.webkitTransform = 'translate3d(' + newOffsetX + 'px, 0, 0)';
-
-      this._removePagerIcon();
-      this.slideIndex = Math.max(0, (this.slideIndex - 1) % content.children.length);
-      this._updatePager();
-    },
-
-    /**
-     * Slide to the given slide index.
-     *
-     * @param {int} the index of the slide to animate to.
-     */
-    slideToSlide: function(index) {
-      var content = this.el.firstElementChild;
-      if(!content) {
-        return;
+      //special case if two slides
+      if (browser.transitions && options.continuous && slides.length < 3) {
+        element.appendChild(slides[0].cloneNode(true));
+        element.appendChild(element.children[1].cloneNode(true));
+        slides = element.children;
       }
 
-      // Get the width of one slide
-      var slideWidth = content.offsetWidth;
+      // create an array to store current positions of each slide
+      slidePos = new Array(slides.length);
 
-      // Calculate the new offsetX position which is just
-      // N slides to the left, where N is the given index
-      var offsetX = index * slideWidth;
+      // determine width of each slide
+      width = container.getBoundingClientRect().width || container.offsetWidth;
 
-      // Calculate the max X position we'd allow based on how many slides
-      // there are.
-      var maxX = Math.max(0, content.children.length - 1) * slideWidth;
+      element.style.width = (slides.length * width) + 'px';
 
-      // Bounds the offset X position in the range maxX >= offsetX >= 0
-      offsetX = offsetX < 0 ? 0 : offsetX > maxX ? maxX : offsetX;
+      // stack elements
+      var pos = slides.length;
+      while(pos--) {
 
-      // Animate and slide the slides over
-      content.classList.add('slide-box-animating');
-      content.style.webkitTransform = 'translate3d(' + -offsetX + 'px, 0, 0)';
+        var slide = slides[pos];
 
-      var lastSlide = this.slideIndex;
+        slide.style.width = width + 'px';
+        slide.setAttribute('data-index', pos);
 
-      // Update the slide index
-      this.slideIndex = Math.ceil(offsetX / slideWidth);
+        if (browser.transitions) {
+          slide.style.left = (pos * -width) + 'px';
+          move(pos, index > pos ? -width : (index < pos ? width : 0), 0);
+        }
 
-      if(lastSlide !== this.slideIndex) {
-        this.slideChanged && this.slideChanged(this.slideIndex);
       }
 
-      this._updatePager();
-    },
-
-    /**
-     * Get the currently set slide index. This method
-     * is updated before any transitions run, so the
-     * value could be early.
-     *
-     * @return {int} the current slide index
-     */
-    getSlideIndex: function() {
-      return this.slideIndex;
-    },
-
-    _appendPagerIcon: function() {
-      if(!this.pager || !this.pager.children.length) { return; }
-
-      var newPagerChild = this.pager.children[0].cloneNode();
-      this.pager.appendChild(newPagerChild);
-    },
-
-    _prependPagerIcon: function() {
-      if(!this.pager || !this.pager.children.length) { return; }
-
-      var newPagerChild = this.pager.children[0].cloneNode();
-      this.pager.insertBefore(newPagerChild, this.pager.firstChild);
-    },
-
-    _removePagerIcon: function() {
-      if(!this.pager || !this.pager.children.length) { return; }
-
-      this.pager.removeChild(this.pager.firstElementChild);
-    },
-
-    /**
-     * If we have a pager, update the active page when the current slide
-     * changes.
-     */
-    _updatePager: function() {
-      if(!this.pager) {
-        return;
+      // reposition elements before and after index
+      if (options.continuous && browser.transitions) {
+        move(circle(index-1), -width, 0);
+        move(circle(index+1), width, 0);
       }
 
-      var numPagerChildren = this.pager.children.length;
-      if(!numPagerChildren) {
-        // No children to update
-        return;
-      }
+      if (!browser.transitions) element.style.left = (index * -width) + 'px';
 
-      // Update the active state of the pager icons
-      for(var i = 0, j = this.pager.children.length; i < j; i++) {
-        if(i == this.slideIndex) {
-          this.pager.children[i].classList.add('active');
-        } else {
-          this.pager.children[i].classList.remove('active');
-        }
-      }
-    },
+      container.style.visibility = 'visible';
 
-    _initDrag: function() {
-      this._isDragging = false;
-      this._drag = null;
-    },
-
-    _handleEndDrag: function(e) {
-      var _this = this,
-          finalOffsetX, content, ratio, slideWidth, totalWidth, offsetX;
-
-      window.rAF(function() {
-      
-        // We didn't have a drag, so just init and leave
-        if(!_this._drag) {
-          _this._initDrag();
-          return;
-        }
-
-        // We did have a drag, so we need to snap to the correct spot
-
-        // Grab the content layer
-        content = _this._drag.content;
-
-        // Enable transition duration
-        content.classList.add('slide-box-animating');
-
-        // Grab the current offset X position
-        offsetX = parseFloat(content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-
-        // Calculate how wide a single slide is, and their total width
-        slideWidth = content.offsetWidth;
-        totalWidth = content.offsetWidth * content.children.length;
-
-        // Calculate how far in this slide we've dragged
-        ratio = (offsetX % slideWidth) / slideWidth;
-
-        if(ratio >= 0) {
-          // Anything greater than zero is too far left, this is an extreme case
-          // TODO: Do we need this anymore?
-          finalOffsetX = 0;
-        } else if(ratio >= -0.5) {
-          // We are less than half-way through a drag
-          // Sliiide to the left
-          finalOffsetX = Math.max(0, Math.floor(Math.abs(offsetX) / slideWidth) * slideWidth);
-        } else {
-          // We are more than half-way through a drag
-          // Sliiide to the right
-          finalOffsetX = Math.min(totalWidth - slideWidth, Math.ceil(Math.abs(offsetX) / slideWidth) * slideWidth);
-        }
-
-
-        if(e.gesture.velocityX > _this.velocityXThreshold) {
-          if(e.gesture.direction == 'left') {
-            _this.slideToSlide(_this.slideIndex + 1);
-          } else if(e.gesture.direction == 'right') {
-            _this.slideToSlide(_this.slideIndex - 1);
-          }
-        } else {
-          // Calculate the new slide index (or "page")
-          _this.slideIndex = Math.ceil(finalOffsetX / slideWidth);
-
-          // Negative offsetX to slide correctly
-          content.style.webkitTransform = 'translate3d(' + -finalOffsetX + 'px, 0, 0)';
-        }
-
-        _this._initDrag();
-      });
-    },
-
-    /**
-     * Initialize a drag by grabbing the content area to drag, and any other
-     * info we might need for the dragging.
-     */
-    _startDrag: function(e) {
-      var offsetX, content;
-
-      this._initDrag();
-
-      // Make sure to grab the element we will slide as our target
-      content = ionic.DomUtil.getParentOrSelfWithClass(e.target, 'slide-box-slides');
-      if(!content) {
-        return;
-      }
-
-      // Disable transitions during drag
-      content.classList.remove('slide-box-animating');
-
-      // Grab the starting X point for the item (for example, so we can tell whether it is open or closed to start)
-      offsetX = parseFloat(content.style.webkitTransform.replace('translate3d(', '').split(',')[0]) || 0;
-
-      this._drag = {
-        content: content,
-        startOffsetX: offsetX,
-        resist: 1
-      };
-    },
-
-    /**
-     * Process the drag event to move the item to the left or right.
-     */
-    _handleDrag: function(e) {
-      var _this = this;
-
-      window.rAF(function() {
-        var content;
-
-        // We really aren't dragging
-        if(!_this._drag) {
-          _this._startDrag(e);
-        }
-
-        // Sanity
-        if(!_this._drag) { return; }
-
-        // Stop any default events during the drag
-        e.preventDefault();
-
-        // Check if we should start dragging. Check if we've dragged past the threshold.
-        if(!_this._isDragging && (Math.abs(e.gesture.deltaX) > _this.dragThresholdX)) {
-          _this._isDragging = true;
-        }
-
-        if(_this._isDragging) {
-          content = _this._drag.content;
-
-          var newX = _this._drag.startOffsetX + (e.gesture.deltaX / _this._drag.resist);
-
-          var rightMostX = -(content.offsetWidth * Math.max(0, content.children.length - 1));
-
-          if(newX > 0) {
-            // We are dragging past the leftmost pane, rubber band
-            _this._drag.resist = (newX / content.offsetWidth) + 1.4;
-          } else if(newX < rightMostX) {
-            // Dragging past the rightmost pane, rubber band
-            //newX = Math.min(rightMostX, + (((e.gesture.deltaX + buttonsWidth) * 0.4)));
-            _this._drag.resist = (Math.abs(newX) / content.offsetWidth) - 0.6;
-          }
-
-          _this._drag.content.style.webkitTransform = 'translate3d(' + newX + 'px, 0, 0)';
-        }
-      });
+      options.slidesChanged && options.slidesChanged();
     }
-  });
 
-})(window.ionic);
+    function prev() {
+
+      if (options.continuous) slide(index-1);
+      else if (index) slide(index-1);
+
+    }
+
+    function next() {
+
+      if (options.continuous) slide(index+1);
+      else if (index < slides.length - 1) slide(index+1);
+
+    }
+
+    function circle(index) {
+
+      // a simple positive modulo using slides.length
+      return (slides.length + (index % slides.length)) % slides.length;
+
+    }
+
+    function slide(to, slideSpeed) {
+
+      // do nothing if already on requested slide
+      if (index == to) return;
+
+      if (browser.transitions) {
+
+        var direction = Math.abs(index-to) / (index-to); // 1: backward, -1: forward
+
+        // get the actual position of the slide
+        if (options.continuous) {
+          var natural_direction = direction;
+          direction = -slidePos[circle(to)] / width;
+
+          // if going forward but to < index, use to = slides.length + to
+          // if going backward but to > index, use to = -slides.length + to
+          if (direction !== natural_direction) to =  -direction * slides.length + to;
+
+        }
+
+        var diff = Math.abs(index-to) - 1;
+
+        // move all the slides between index and to in the right direction
+        while (diff--) move( circle((to > index ? to : index) - diff - 1), width * direction, 0);
+
+        to = circle(to);
+
+        move(index, width * direction, slideSpeed || speed);
+        move(to, 0, slideSpeed || speed);
+
+        if (options.continuous) move(circle(to - direction), -(width * direction), 0); // we need to get the next in place
+
+      } else {
+
+        to = circle(to);
+        animate(index * -width, to * -width, slideSpeed || speed);
+        //no fallback for a circular continuous if the browser does not accept transitions
+      }
+
+      index = to;
+      offloadFn(options.callback && options.callback(index, slides[index]));
+    }
+
+    function move(index, dist, speed) {
+
+      translate(index, dist, speed);
+      slidePos[index] = dist;
+
+    }
+
+    function translate(index, dist, speed) {
+
+      var slide = slides[index];
+      var style = slide && slide.style;
+
+      if (!style) return;
+
+      style.webkitTransitionDuration =
+      style.MozTransitionDuration =
+      style.msTransitionDuration =
+      style.OTransitionDuration =
+      style.transitionDuration = speed + 'ms';
+
+      style.webkitTransform = 'translate(' + dist + 'px,0)' + 'translateZ(0)';
+      style.msTransform =
+      style.MozTransform =
+      style.OTransform = 'translateX(' + dist + 'px)';
+
+    }
+
+    function animate(from, to, speed) {
+
+      // if not an animation, just reposition
+      if (!speed) {
+
+        element.style.left = to + 'px';
+        return;
+
+      }
+
+      var start = +new Date;
+
+      var timer = setInterval(function() {
+
+        var timeElap = +new Date - start;
+
+        if (timeElap > speed) {
+
+          element.style.left = to + 'px';
+
+          if (delay) begin();
+
+          options.transitionEnd && options.transitionEnd.call(event, index, slides[index]);
+
+          clearInterval(timer);
+          return;
+
+        }
+
+        element.style.left = (( (to - from) * (Math.floor((timeElap / speed) * 100) / 100) ) + from) + 'px';
+
+      }, 4);
+
+    }
+
+    // setup auto slideshow
+    var delay = options.auto || 0;
+    var interval;
+
+    function begin() {
+
+      interval = setTimeout(next, delay);
+
+    }
+
+    function stop() {
+
+      delay = 0;
+      clearTimeout(interval);
+
+    }
+
+
+    // setup initial vars
+    var start = {};
+    var delta = {};
+    var isScrolling;
+
+    // setup event capturing
+    var events = {
+
+      handleEvent: function(event) {
+        if(event.type == 'mousedown' || event.type == 'mouseup' || event.type == 'mousemove') {
+          event.touches = [{
+            pageX: event.pageX,
+            pageY: event.pageY
+          }];
+        }
+
+        switch (event.type) {
+          case 'mousedown': this.start(event); break;
+          case 'touchstart': this.start(event); break;
+          case 'touchmove': this.move(event); break;
+          case 'mousemove': this.move(event); break;
+          case 'touchend': offloadFn(this.end(event)); break;
+          case 'mouseup': offloadFn(this.end(event)); break;
+          case 'webkitTransitionEnd':
+          case 'msTransitionEnd':
+          case 'oTransitionEnd':
+          case 'otransitionend':
+          case 'transitionend': offloadFn(this.transitionEnd(event)); break;
+          case 'resize': offloadFn(setup); break;
+        }
+
+        if (options.stopPropagation) event.stopPropagation();
+
+      },
+      start: function(event) {
+
+        var touches = event.touches[0];
+
+        // measure start values
+        start = {
+
+          // get initial touch coords
+          x: touches.pageX,
+          y: touches.pageY,
+
+          // store time to determine touch duration
+          time: +new Date
+
+        };
+
+        // used for testing first move event
+        isScrolling = undefined;
+
+        // reset delta and end measurements
+        delta = {};
+
+        // attach touchmove and touchend listeners
+        if(browser.touch) {
+          element.addEventListener('touchmove', this, false);
+          element.addEventListener('touchend', this, false);
+        } else {
+          element.addEventListener('mousemove', this, false);
+          element.addEventListener('mouseup', this, false);
+          document.addEventListener('mouseup', this, false);
+        }
+      },
+      move: function(event) {
+
+        // ensure swiping with one touch and not pinching
+        if ( event.touches.length > 1 || event.scale && event.scale !== 1) return
+
+        if (options.disableScroll) event.preventDefault();
+
+        var touches = event.touches[0];
+
+        // measure change in x and y
+        delta = {
+          x: touches.pageX - start.x,
+          y: touches.pageY - start.y
+        }
+
+        // determine if scrolling test has run - one time test
+        if ( typeof isScrolling == 'undefined') {
+          isScrolling = !!( isScrolling || Math.abs(delta.x) < Math.abs(delta.y) );
+        }
+
+        // if user is not trying to scroll vertically
+        if (!isScrolling) {
+
+          // prevent native scrolling
+          event.preventDefault();
+
+          // stop slideshow
+          stop();
+
+          // increase resistance if first or last slide
+          if (options.continuous) { // we don't add resistance at the end
+
+            translate(circle(index-1), delta.x + slidePos[circle(index-1)], 0);
+            translate(index, delta.x + slidePos[index], 0);
+            translate(circle(index+1), delta.x + slidePos[circle(index+1)], 0);
+
+          } else {
+
+            delta.x =
+              delta.x /
+                ( (!index && delta.x > 0               // if first slide and sliding left
+                  || index == slides.length - 1        // or if last slide and sliding right
+                  && delta.x < 0                       // and if sliding at all
+                ) ?
+                ( Math.abs(delta.x) / width + 1 )      // determine resistance level
+                : 1 );                                 // no resistance if false
+
+            // translate 1:1
+            translate(index-1, delta.x + slidePos[index-1], 0);
+            translate(index, delta.x + slidePos[index], 0);
+            translate(index+1, delta.x + slidePos[index+1], 0);
+          }
+
+        }
+
+      },
+      end: function(event) {
+
+        // measure duration
+        var duration = +new Date - start.time;
+
+        // determine if slide attempt triggers next/prev slide
+        var isValidSlide =
+              Number(duration) < 250               // if slide duration is less than 250ms
+              && Math.abs(delta.x) > 20            // and if slide amt is greater than 20px
+              || Math.abs(delta.x) > width/2;      // or if slide amt is greater than half the width
+
+        // determine if slide attempt is past start and end
+        var isPastBounds =
+              !index && delta.x > 0                            // if first slide and slide amt is greater than 0
+              || index == slides.length - 1 && delta.x < 0;    // or if last slide and slide amt is less than 0
+
+        if (options.continuous) isPastBounds = false;
+
+        // determine direction of swipe (true:right, false:left)
+        var direction = delta.x < 0;
+
+        // if not scrolling vertically
+        if (!isScrolling) {
+
+          if (isValidSlide && !isPastBounds) {
+
+            if (direction) {
+
+              if (options.continuous) { // we need to get the next in this direction in place
+
+                move(circle(index-1), -width, 0);
+                move(circle(index+2), width, 0);
+
+              } else {
+                move(index-1, -width, 0);
+              }
+
+              move(index, slidePos[index]-width, speed);
+              move(circle(index+1), slidePos[circle(index+1)]-width, speed);
+              index = circle(index+1);
+
+            } else {
+              if (options.continuous) { // we need to get the next in this direction in place
+
+                move(circle(index+1), width, 0);
+                move(circle(index-2), -width, 0);
+
+              } else {
+                move(index+1, width, 0);
+              }
+
+              move(index, slidePos[index]+width, speed);
+              move(circle(index-1), slidePos[circle(index-1)]+width, speed);
+              index = circle(index-1);
+
+            }
+
+            options.callback && options.callback(index, slides[index]);
+
+          } else {
+
+            if (options.continuous) {
+
+              move(circle(index-1), -width, speed);
+              move(index, 0, speed);
+              move(circle(index+1), width, speed);
+
+            } else {
+
+              move(index-1, -width, speed);
+              move(index, 0, speed);
+              move(index+1, width, speed);
+            }
+
+          }
+
+        }
+
+        // kill touchmove and touchend event listeners until touchstart called again
+        if(browser.touch) {
+          element.removeEventListener('touchmove', events, false)
+          element.removeEventListener('touchend', events, false)
+        } else {
+          element.removeEventListener('mousemove', events, false)
+          element.removeEventListener('mouseup', events, false)
+          document.removeEventListener('mouseup', events, false);
+        }
+
+      },
+      transitionEnd: function(event) {
+
+        if (parseInt(event.target.getAttribute('data-index'), 10) == index) {
+
+          if (delay) begin();
+
+          options.transitionEnd && options.transitionEnd.call(event, index, slides[index]);
+
+        }
+
+      }
+
+    }
+
+    // Public API
+    this.setup = function() {
+      setup();
+    };
+
+    this.slide = function(to, speed) {
+      // cancel slideshow
+      stop();
+
+      slide(to, speed);
+    };
+
+    this.prev = function() {
+      // cancel slideshow
+      stop();
+
+      prev();
+    };
+
+    this.next = function() {
+      // cancel slideshow
+      stop();
+
+      next();
+    };
+
+    this.stop = function() {
+      // cancel slideshow
+      stop();
+    };
+
+    this.getPos = function() {
+      // return current index position
+      return index;
+    };
+
+    this.getNumSlides = function() {
+      // return total number of slides
+      return length;
+    };
+
+    this.kill = function() {
+      // cancel slideshow
+      stop();
+
+      // reset element
+      element.style.width = '';
+      element.style.left = '';
+
+      // reset slides
+      var pos = slides.length;
+      while(pos--) {
+
+        var slide = slides[pos];
+        slide.style.width = '';
+        slide.style.left = '';
+
+        if (browser.transitions) translate(pos, 0, 0);
+
+      }
+
+      // removed event listeners
+      if (browser.addEventListener) {
+
+        // remove current event listeners
+        element.removeEventListener('touchstart', events, false);
+        element.removeEventListener('webkitTransitionEnd', events, false);
+        element.removeEventListener('msTransitionEnd', events, false);
+        element.removeEventListener('oTransitionEnd', events, false);
+        element.removeEventListener('otransitionend', events, false);
+        element.removeEventListener('transitionend', events, false);
+        window.removeEventListener('resize', events, false);
+
+      }
+      else {
+
+        window.onresize = null;
+
+      }
+    };
+
+    this.load = function() {
+      // trigger setup
+      setup();
+
+      // start auto slideshow if applicable
+      if (delay) begin();
+
+
+      // add event listeners
+      if (browser.addEventListener) {
+
+        // set touchstart event on element
+        if (browser.touch) {
+          element.addEventListener('touchstart', events, false);
+        } else {
+          element.addEventListener('mousedown', events, false);
+        }
+
+        if (browser.transitions) {
+          element.addEventListener('webkitTransitionEnd', events, false);
+          element.addEventListener('msTransitionEnd', events, false);
+          element.addEventListener('oTransitionEnd', events, false);
+          element.addEventListener('otransitionend', events, false);
+          element.addEventListener('transitionend', events, false);
+        }
+
+        // set resize event on window
+        window.addEventListener('resize', events, false);
+
+      } else {
+
+        window.onresize = function () { setup() }; // to play nice with old IE
+
+      }
+    }
+
+  }
+});
+
+})(ionic);
 ;
 (function(ionic) {
 'use strict';
@@ -4043,7 +5579,7 @@ ionic.views.TabBarItem = ionic.views.View.inherit({
     }
 
     // Set the title to the text content of the tab.
-    this.title = this.el.innerText.trim();
+    this.title = this.el.textContent.trim();
 
     this._tapHandler = function(e) {
       _this.onTap && _this.onTap(e);
@@ -4491,6 +6027,7 @@ ionic.controllers.NavController = ionic.controllers.ViewController.inherit({
      * Toggle the left menu to open 100%
      */
     toggleLeft: function() {
+      this.content.enableAnimation();
       var openAmount = this.getOpenAmount();
       if(openAmount > 0) {
         this.openPercentage(0);
@@ -4503,6 +6040,7 @@ ionic.controllers.NavController = ionic.controllers.ViewController.inherit({
      * Toggle the right menu to open 100%
      */
     toggleRight: function() {
+      this.content.enableAnimation();
       var openAmount = this.getOpenAmount();
       if(openAmount < 0) {
         this.openPercentage(0);
@@ -4536,6 +6074,10 @@ ionic.controllers.NavController = ionic.controllers.ViewController.inherit({
         return amount / this.left.width;
       }
       return amount / this.right.width;
+    },
+
+    isOpen: function() {
+      return this.getOpenRatio() == 1;
     },
 
     /**
@@ -4587,17 +6129,17 @@ ionic.controllers.NavController = ionic.controllers.ViewController.inherit({
         this._rightShowing = false;
 
         // Push the z-index of the right menu down
-        this.right && this.right.pushDown();
+        this.right && this.right.pushDown && this.right.pushDown();
         // Bring the z-index of the left menu up
-        this.left && this.left.bringUp();
+        this.left && this.left.bringUp && this.left.bringUp();
       } else {
         this._rightShowing = true;
         this._leftShowing = false;
 
         // Bring the z-index of the right menu up
-        this.right && this.right.bringUp();
+        this.right && this.right.bringUp && this.right.bringUp();
         // Push the z-index of the left menu down
-        this.left && this.left.pushDown();
+        this.left && this.left.pushDown && this.left.pushDown();
       }
     },
 
@@ -4667,7 +6209,9 @@ ionic.controllers.NavController = ionic.controllers.ViewController.inherit({
 
     // End a drag with the given event
     _endDrag: function(e) {
-      this.snapToRest(e);
+      if(this._isDragging) {
+        this.snapToRest(e);
+      }
       this._startX = null;
       this._lastX = null;
       this._offsetX = null;

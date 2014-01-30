@@ -5,11 +5,16 @@
     <title>ToDo</title>
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
 
-    <link rel="stylesheet" href="css/ionic.css">
+    <link rel="stylesheet" href="lib/css/ionic.css">
     <link rel="stylesheet" href="css/app.css">
 
-    <script src="js/ionic.js"></script>
-    <script src="js/ionic-angular.js"></script>
+    <script src="lib/js/ionic.js"></script>
+    <script src="lib/js/angular/angular.js"></script>
+    <script src="lib/js/angular-ui/angular-ui-router.js"></script>
+    <script src="lib/js/angular/angular-animate.js"></script>
+    <script src="lib/js/angular/angular-touch.js"></script>
+    <script src="lib/js/angular/angular-sanitize.js"></script>
+    <script src="lib/js/ionic-angular.js"></script>
     <script type="text/javascript" src="cordova.js"></script>
     <script src="js/app.js"></script>
   </head>
@@ -27,13 +32,11 @@
             New
           </button>
         </header>
-        <content has-header="true" scroll="false">
+        <content has-header="true">
           <list class="fade-in-not-out">
-            <item ng-repeat="task in activeProject.tasks" type="item-checkbox" ng-class="{complete: task.isComplete}">
-              <checkbox ng-change="completionChanged()" ng-model="task.isComplete">
-              </checkbox>
-              {{task.title}}
-            </item>
+            <checkbox ng-repeat="task in activeProject.tasks" ng-change="completionChanged()" ng-model="task.isComplete" ng-class="{complete: task.isComplete}">
+            {{task.title}}
+            </checkbox>
           </list>
         </content>
       </pane>
@@ -46,7 +49,7 @@
             <i class="ion ion-plus"></i>
           </button>
         </header>
-        <content has-header="true" scroll="false">
+        <content has-header="true">
           <list>
             <item ng-repeat="project in projects" ng-click="selectProject(project, $index)" ng-class="{active: activeProject == project}">
               {{project.title}}
