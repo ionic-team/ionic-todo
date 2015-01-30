@@ -110,7 +110,7 @@ angular.module('todo', ['ionic'])
   // this by using $timeout so everything is initialized
   // properly
   $timeout(function() {
-    if($scope.projects.length == 0) {
+    if($scope.projects.length === 0) {
       while(true) {
         var projectTitle = prompt('Your first project title:');
         if(projectTitle) {
